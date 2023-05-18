@@ -1,0 +1,7 @@
+{
+  "author": "xuaps <admin@xuaps.com>",
+  "name": "parser",
+  "private": true,
+  "main": "pkg/index.js",
+  "version": "0.1.0"
+}

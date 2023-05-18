@@ -1,0 +1,20 @@
+{
+  "author": "xuaps <admin@xuaps.com>",
+  "name": "web-parser",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "webpack",
+    "start": "webpack-dev-server --open -d"
+  },
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "^1.1.0",
+    "copy-webpack-plugin": "^5.0.3",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.3",
+    "webpack-dev-server": "^3.7.1"
+  },
+  "dependencies": {
+    "parser": "workspace:^"
+  }
+}
