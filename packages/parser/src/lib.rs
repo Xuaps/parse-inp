@@ -1,77 +1,64 @@
 use std::str::Chars;
 
-#[derive(Debug, PartialEq)]
-pub struct Token {
-    pub kind: Kind,
-    pub start: usize,
-    pub end: usize,
+pub struct INP {
+    title: String
 }
 
-#[derive(Debug, PartialEq)]
-pub enum Kind {
-    Section(String)
-}
-
-pub struct Lexer<'a> {
-    pub input: &'a str,
-    pub chars: Chars<'a>,
-}
-
-impl<'a> Lexer<'a> {
-    pub fn new(input: &'a str) -> Self {
-        Lexer {
-            input,
-            chars: input.chars(),
+impl INP {
+    pub fn read(content: &str) -> Self {
+        let mut inp = INP { title: String::new() };
+        let mut chars = content.chars();
+        match chars.next() {
+            Some('[') => match inp.read_section(&mut chars).as_deref() {
+                Some("TITLE") => {
+                    inp.skip_line(&mut chars);
+                    inp.read_title(&mut chars)
+                },
+                _ => panic!("Invalid section")
+            },
+            _ => panic!("Invalid INP file")
         }
+        inp
     }
 
-    pub fn read_next_token(&mut self) -> Token {
-        let start = self.offset();
-        let kind = self.read_next_kind();
-        let end = self.offset();
-        Token { kind, start, end }
-    }
-
-    fn read_next_kind(&mut self) -> Kind {
-        //I want include the section value in the token
-        match self.chars.next() {
-            Some('[') => self.read_next_section(),
-            _ => panic!("Invalid token"),
-        }
-    }
-
-    fn read_next_section(&mut self) -> Kind {
+    pub fn read_section(&mut self, chars: &mut Chars) -> Option<String> {
         let mut section = String::new();
-        loop {
-            match self.chars.next() {
-                Some(']') => break,
-                Some(c) => section.push(c),
-                None => panic!("Invalid token"),
-            }
+        let mut c = chars.next();
+        while c != Some(']') {
+            section.push(c.unwrap());
+            c = chars.next();
         }
-        Kind::Section(section)
+        Some(section)
     }
 
-    fn offset(&self) -> usize {
-        self.input.len() - self.chars.as_str().len()
+    pub fn read_title(&mut self, chars: &mut Chars) {
+        let mut title = String::new();
+        let mut c = chars.next();
+        while c != Some('\n') {
+            title.push(c.unwrap());
+            c = chars.next();
+        }
+        self.title = title;
+    }
+
+    pub fn skip_line(&mut self, chars: &mut Chars) {
+        let mut c = chars.next();
+        while c != Some('\n') {
+            c = chars.next();
+        }
     }
 }
 
 
 #[cfg(test)]
 mod test {
-    use super::{Kind, Lexer};
+    use super::INP;
 
-    //I want to write a test to assert the lexer is able to identify section on an Epanet file
     #[test]
-    fn lexer_read_section() {
-        let input = "[TITLE]";
-        let mut lexer = Lexer::new(input);
-        let token = lexer.read_next_token();
-        assert_eq!(token.kind, Kind::Section("TITLE".to_string()));
-        assert_eq!(token.start, 0);
-        assert_eq!(token.end, 7);
+    fn read_inp_title() {
+        let input = "[TITLE]\nHello World\n";
+        let inp = INP::read(input);
+        assert_eq!(inp.title, "Hello World");
     }
-
 }
 
