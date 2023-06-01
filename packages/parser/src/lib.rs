@@ -17,8 +17,8 @@ impl INP {
         let mut inp = INP { title: String::new(), reservoirs: Vec::new() };
         let mut lines = content.lines();
         while let Some(line) = lines.next() {
-            match line.chars().next() {
-                Some('[') => match inp.read_section(line).as_deref() {
+            match line.trim().chars().next() {
+                Some('[') => match inp.read_section(line.trim()).as_deref() {
                     Some("TITLE") => if let Some(line) = lines.next() {
                         inp.read_title(line)
                     },
@@ -28,7 +28,7 @@ impl INP {
                     other => panic!("Invalid section {}", other.unwrap_or(""))
                 },
                 Some(';') => continue,
-                _ => panic!("Invalid INP file")
+                _ => ()
             }
         }
         inp
@@ -82,7 +82,12 @@ mod test {
 
     #[test]
     fn read_inp_reservoirs() {
-        let input = "[TITLE]\nHello World\n[RESERVOIRS]\nR2     120       Pat1\n";
+        let input = r#"
+            [TITLE]
+            Hello World
+            [RESERVOIRS]
+            R2     120       Pat1
+        "#;
         let inp = INP::read(input);
         assert_eq!(
             inp.reservoirs, 
