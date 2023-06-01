@@ -1,4 +1,3 @@
-use std::str::Chars;
 
 #[derive(Debug, PartialEq)]
 pub struct INP {
@@ -24,7 +23,7 @@ impl INP {
                         inp.read_title(line)
                     },
                     Some("RESERVOIRS") => if let Some(line) = lines.next() {
-                        inp.read_reservoirs(line)
+                        inp.read_reservoir(line)
                     },
                     other => panic!("Invalid section {}", other.unwrap_or(""))
                 },
@@ -57,44 +56,14 @@ impl INP {
         self.title = title;
     }
 
-    fn read_reservoirs(&mut self, line: &str) {
-        let mut reservoirs = Vec::new();
-        let mut chars = line.chars();
-        let mut c = chars.next();
-        while c != None {
-            let mut name = String::new();
-            while c != Some(' ') {
-                name.push(c.unwrap());
-                c = chars.next();
-            }
-            c = self.skip_spaces(&mut chars);
-            let mut head = String::new();
-            while c != Some(' ') {
-                head.push(c.unwrap());
-                c = chars.next();
-            }
-            c = self.skip_spaces(&mut chars);
-            let mut pattern = String::new();
-            while c != None {
-                pattern.push(c.unwrap());
-                c = chars.next();
-            }
-            c = self.skip_spaces(&mut chars);
-            reservoirs.push(RESERVOIR { 
-                id: name, 
-                head: head.parse::<f64>().unwrap(), 
-                pattern
-            });
-        }
-        self.reservoirs = reservoirs;
-    }
+    fn read_reservoir(&mut self, line: &str) {
+        let properties = line.split_whitespace().collect::<Vec<&str>>();
 
-    fn skip_spaces(&mut self, chars: &mut Chars) -> Option<char> {
-        let mut c = chars.next();
-        while c == Some(' ') {
-            c = chars.next();
-        }
-        c
+        self.reservoirs.push(RESERVOIR  {
+            id: properties[0].to_string(),
+            head: properties[1].parse::<f64>().unwrap(),
+            pattern: properties[2].to_string()
+        });
     }
 }
 
