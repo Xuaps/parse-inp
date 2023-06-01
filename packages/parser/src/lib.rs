@@ -20,12 +20,8 @@ impl INP {
         while let Some(c) = chars.next() {
             match c {
                 '[' => match inp.read_section(&mut chars).as_deref() {
-                    Some("TITLE") => {
-                        inp.read_title(&mut chars)
-                    },
-                    Some("RESERVOIRS") => {
-                        inp.read_reservoirs(&mut chars)
-                    },
+                    Some("TITLE") => inp.read_title(&mut chars),
+                    Some("RESERVOIRS") => inp.read_reservoirs(&mut chars),
                     _ => panic!("Invalid section")
                 },
                 _ => panic!("Invalid INP file")
@@ -34,7 +30,7 @@ impl INP {
         inp
     }
 
-    pub fn read_section(&mut self, chars: &mut Chars) -> Option<String> {
+    fn read_section(&mut self, chars: &mut Chars) -> Option<String> {
         let mut section = String::new();
         let mut c = chars.next();
         while c != Some(']') {
@@ -45,7 +41,7 @@ impl INP {
         Some(section)
     }
 
-    pub fn read_title(&mut self, chars: &mut Chars) {
+    fn read_title(&mut self, chars: &mut Chars) {
         let mut title = String::new();
         let mut c = chars.next();
         while c != Some('\n') {
@@ -55,7 +51,7 @@ impl INP {
         self.title = title;
     }
 
-    pub fn read_reservoirs(&mut self, chars: &mut Chars) {
+    fn read_reservoirs(&mut self, chars: &mut Chars) {
         let mut reservoirs = Vec::new();
         let mut c = chars.next();
         while c != Some('[') {
@@ -85,6 +81,7 @@ impl INP {
         }
         self.reservoirs = reservoirs;
     }
+
 
     fn skip_line(&mut self, chars: &mut Chars) {
         let mut c = chars.next();
