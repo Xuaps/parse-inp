@@ -21,11 +21,9 @@ impl INP {
             match c {
                 '[' => match inp.read_section(&mut chars).as_deref() {
                     Some("TITLE") => {
-                        inp.skip_line(&mut chars);
                         inp.read_title(&mut chars)
                     },
                     Some("RESERVOIRS") => {
-                        inp.skip_line(&mut chars);
                         inp.read_reservoirs(&mut chars)
                     },
                     _ => panic!("Invalid section")
@@ -43,6 +41,7 @@ impl INP {
             section.push(c.unwrap());
             c = chars.next();
         }
+        self.skip_line(chars);
         Some(section)
     }
 
@@ -87,7 +86,7 @@ impl INP {
         self.reservoirs = reservoirs;
     }
 
-    pub fn skip_line(&mut self, chars: &mut Chars) {
+    fn skip_line(&mut self, chars: &mut Chars) {
         let mut c = chars.next();
         while c != Some('\n') {
             c = chars.next();
