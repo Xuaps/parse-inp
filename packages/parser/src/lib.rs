@@ -16,19 +16,19 @@ impl INP {
     pub fn read(content: &str) -> Self {
         let mut inp = INP { title: String::new(), reservoirs: Vec::new() };
         let mut lines = content.lines();
+        let mut section = None;
         while let Some(line) = lines.next() {
             match line.trim().chars().next() {
-                Some('[') => match inp.read_section(line.trim()).as_deref() {
-                    Some("TITLE") => if let Some(line) = lines.next() {
-                        inp.read_title(line)
-                    },
-                    Some("RESERVOIRS") => if let Some(line) = lines.next() {
-                        inp.read_reservoir(line)
-                    },
-                    other => panic!("Invalid section {}", other.unwrap_or(""))
-                },
+                None => continue,
+                Some('[') => {
+                    section = inp.read_section(line.trim());
+                }
                 Some(';') => continue,
-                _ => ()
+                _ => match section.as_deref() {
+                        Some("TITLE") => inp.read_title_line(line),
+                        Some("RESERVOIRS") => inp.read_reservoir(line),
+                        other => panic!("Invalid section {}", other.unwrap_or(""))
+                    }
             }
         }
         inp
@@ -42,10 +42,11 @@ impl INP {
             section.push(c.unwrap());
             c = chars.next();
         }
+
         Some(section)
     }
 
-    fn read_title(&mut self, line: &str) {
+    fn read_title_line(&mut self, line: &str) {
         let mut title = String::new();
         let mut chars = line.chars();
         let mut c = chars.next();
@@ -53,7 +54,10 @@ impl INP {
             title.push(c.unwrap());
             c = chars.next();
         }
-        self.title = title;
+        if self.title.len() > 0 {
+            self.title.push(' ');
+        }
+        self.title.push_str(title.as_str());
     }
 
     fn read_reservoir(&mut self, line: &str) {
@@ -75,9 +79,9 @@ mod test {
 
     #[test]
     fn read_inp_title() {
-        let input = "[TITLE]\nHello World\n";
+        let input = "[TITLE]\nHello World\nLine two\n;comment";
         let inp = INP::read(input);
-        assert_eq!(inp.title, "Hello World");
+        assert_eq!(inp.title, "Hello World Line two");
     }
 
     #[test]
