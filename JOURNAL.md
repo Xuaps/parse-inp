@@ -1,3 +1,11 @@
+## 2023 06 07
+
+### Multiline and comments
+
+I have changed my mind again. I have created the line abtraction and instead of travel char by char now I process entire lines. This change has simplified the implementation since I don't have to take care of when a new line start. Still I don't want to delegate the handling of line cllection to method that processes lines because I don't want to mutate the iterator in a differnet context. I keep the current section in a variable and I continue processing every line as part of that section until it changes and I am ready to start with a new one. 
+
+I still have a lot of doubts about Rust, when to use string or str, best approached to do something. I am still trusting on copilot to do this part of the job, however it is not as consistant as it should be creating code.
+
 ## 2023 05 30
 
 ### Use two different collections
