@@ -9,7 +9,8 @@ pub struct INP {
 pub struct RESERVOIR {
     id: String,
     head: f64,
-    pattern: String
+    pattern: Option<String>,
+    comment: Option<String>
 }
 
 impl INP {
@@ -61,14 +62,23 @@ impl INP {
     }
 
     fn read_reservoir(&mut self, line: &str) {
-        let properties = line.split_whitespace().collect::<Vec<&str>>();
+        let mut parts = line.split(";");
+        let properties = parts.next().unwrap_or("").split_whitespace().collect::<Vec<&str>>();
+        let comment = parts.next();
+
+        let id = properties[0].to_string();
+        let head = properties[1].parse::<f64>().unwrap();
+        let pattern = if properties.len() > 2 { Some(properties[2].to_string()) } else { None };
+        let comment = comment.map(|s| s.to_string());
 
         self.reservoirs.push(RESERVOIR  {
-            id: properties[0].to_string(),
-            head: properties[1].parse::<f64>().unwrap(),
-            pattern: properties[2].to_string()
+            id,
+            head,
+            pattern,
+            comment
         });
     }
+
 }
 
 
@@ -87,19 +97,27 @@ mod test {
     #[test]
     fn read_inp_reservoirs() {
         let input = r#"
-            [TITLE]
-            Hello World
             [RESERVOIRS]
-            R2     120       Pat1
+            ;ID    Head      Pattern
+            ;----------------------- 
+            R1     512               ;Head stays constant
+            R2     120       Pat1    ;Head varies with time
         "#;
         let inp = INP::read(input);
         assert_eq!(
             inp.reservoirs, 
-            vec![RESERVOIR { 
-                id: "R2".to_string(), 
-                head: 120.0, 
-                pattern: "Pat1".to_string() 
-            }]
+            vec![
+                RESERVOIR { 
+                    id: "R1".to_string(), 
+                    head: 512.0, 
+                    pattern: None,
+                    comment: Some("Head stays constant".to_string()) },
+                RESERVOIR { 
+                    id: "R2".to_string(), 
+                    head: 120.0, 
+                    pattern: Some("Pat1".to_string()),
+                    comment: Some("Head varies with time".to_string())},
+            ]
         );
     }
 }
