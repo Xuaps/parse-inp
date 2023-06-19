@@ -1,4 +1,8 @@
 
+trait Sectionable {
+    fn from(properties: Vec<&str>, comment: Option<String>) -> Self;
+}
+
 #[derive(Debug, PartialEq)]
 pub struct INP {
     title: String,
@@ -14,7 +18,7 @@ pub struct RESERVOIR {
     comment: Option<String>
 }
 
-impl RESERVOIR {
+impl Sectionable for RESERVOIR {
     fn from(properties: Vec<&str>, comment: Option<String>) -> Self {
         let id = properties[0].to_string();
         let head = properties[1].parse::<f64>().unwrap();
@@ -34,7 +38,7 @@ pub struct SOURCE {
     comment: Option<String>
 }
 
-impl SOURCE {
+impl Sectionable for SOURCE {
     fn from(properties: Vec<&str>, comment: Option<String>) -> Self {
         let node = properties[0].to_string();
         let source_type= properties[1].to_string();
@@ -60,8 +64,8 @@ impl INP {
                 Some(';') => continue,
                 _ => match section.as_deref() {
                         Some("TITLE") => inp.push_title_line(INP::read_title_line(line).as_str()),
-                        Some("SOURCES") => inp.sources.push(INP::read_sources(line)),
-                        Some("RESERVOIRS") => inp.reservoirs.push(INP::read_reservoir(line)),
+                        Some("SOURCES") => inp.sources.push(INP::build_section::<SOURCE>(line)),
+                        Some("RESERVOIRS") => inp.reservoirs.push(INP::build_section::<RESERVOIR>(line)),
                         other => panic!("Invalid section {}", other.unwrap_or(""))
                     }
             }
@@ -92,16 +96,10 @@ impl INP {
         title
     }
 
-    fn read_reservoir(line: &str) -> RESERVOIR {
+    fn build_section<T: Sectionable>(line: &str) -> T {
         let (properties, comment) = INP::get_properties_and_comment(line);
 
-        RESERVOIR::from(properties, comment)
-    }
-
-    fn read_sources(line: &str) -> SOURCE {
-        let (properties, comment) = INP::get_properties_and_comment(line);
-
-        SOURCE::from(properties, comment)
+        T::from(properties, comment)
     }
 
     fn get_properties_and_comment<'a>(line: &'a str) -> (Vec<&str>, Option<String>) {
