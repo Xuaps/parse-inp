@@ -73,9 +73,7 @@ impl INP {
     }
 
     fn read_reservoir(&mut self, line: &str) {
-        let mut parts = line.split(";");
-        let properties = parts.next().unwrap_or("").split_whitespace().collect::<Vec<&str>>();
-        let comment = parts.next();
+        let (properties, comment) = self.get_properties_and_comment(line);
 
         let id = properties[0].to_string();
         let head = properties[1].parse::<f64>().unwrap();
@@ -91,9 +89,7 @@ impl INP {
     }
 
     fn read_sources(&mut self, line: &str) {
-        let mut parts = line.split(";");
-        let properties = parts.next().unwrap_or("").split_whitespace().collect::<Vec<&str>>();
-        let comment = parts.next();
+        let (properties, comment) = self.get_properties_and_comment(line);
 
         let node = properties[0].to_string();
         let source_type= properties[1].to_string();
@@ -102,6 +98,14 @@ impl INP {
         let comment = comment.map(|s| s.to_string());
 
         self.sources.push(SOURCE { node, source_type, strength, pattern, comment });
+    }
+
+    fn get_properties_and_comment<'a>(&'a self, line: &'a str) -> (Vec<&str>, Option<String>) {
+        let mut parts = line.split(";");
+        let properties = parts.next().unwrap_or("").split_whitespace().collect::<Vec<&'a str>>();
+        let comment = parts.next().map(|s| s.to_string());
+
+        (properties, comment)
     }
 }
 
