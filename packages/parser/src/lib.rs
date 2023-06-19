@@ -55,13 +55,13 @@ impl INP {
             match line.trim().chars().next() {
                 None => continue,
                 Some('[') => {
-                    section = inp.read_section(line.trim());
+                    section = INP::read_section(line.trim());
                 }
                 Some(';') => continue,
                 _ => match section.as_deref() {
-                        Some("TITLE") => inp.read_title_line(line),
-                        Some("SOURCES") => inp.read_sources(line),
-                        Some("RESERVOIRS") => inp.read_reservoir(line),
+                        Some("TITLE") => inp.push_title_line(INP::read_title_line(line).as_str()),
+                        Some("SOURCES") => inp.sources.push(INP::read_sources(line)),
+                        Some("RESERVOIRS") => inp.reservoirs.push(INP::read_reservoir(line)),
                         other => panic!("Invalid section {}", other.unwrap_or(""))
                     }
             }
@@ -69,7 +69,7 @@ impl INP {
         inp
     }
 
-    fn read_section(&mut self, line: &str) -> Option<String> {
+    fn read_section(line: &str) -> Option<String> {
         let mut section = String::new();
         let mut chars = line.chars().skip(1);
         let mut c = chars.next();
@@ -81,7 +81,7 @@ impl INP {
         Some(section)
     }
 
-    fn read_title_line(&mut self, line: &str) {
+    fn read_title_line(line: &str) -> String {
         let mut title = String::new();
         let mut chars = line.chars();
         let mut c = chars.next();
@@ -89,30 +89,34 @@ impl INP {
             title.push(c.unwrap());
             c = chars.next();
         }
-        if self.title.len() > 0 {
-            self.title.push(' ');
-        }
-        self.title.push_str(title.as_str());
+        title
     }
 
-    fn read_reservoir(&mut self, line: &str) {
-        let (properties, comment) = self.get_properties_and_comment(line);
+    fn read_reservoir(line: &str) -> RESERVOIR {
+        let (properties, comment) = INP::get_properties_and_comment(line);
 
-        self.reservoirs.push(RESERVOIR::from(properties, comment));
+        RESERVOIR::from(properties, comment)
     }
 
-    fn read_sources(&mut self, line: &str) {
-        let (properties, comment) = self.get_properties_and_comment(line);
+    fn read_sources(line: &str) -> SOURCE {
+        let (properties, comment) = INP::get_properties_and_comment(line);
 
-        self.sources.push(SOURCE::from(properties, comment));
+        SOURCE::from(properties, comment)
     }
 
-    fn get_properties_and_comment<'a>(&'a self, line: &'a str) -> (Vec<&str>, Option<String>) {
+    fn get_properties_and_comment<'a>(line: &'a str) -> (Vec<&str>, Option<String>) {
         let mut parts = line.split(";");
         let properties = parts.next().unwrap_or("").split_whitespace().collect::<Vec<&'a str>>();
         let comment = parts.next().map(|s| s.to_string());
 
         (properties, comment)
+    }
+
+    fn push_title_line(&mut self, s: &str) {
+        if !self.title.is_empty() {
+            self.title.push(' ');
+        }
+        self.title.push_str(s);
     }
 }
 
