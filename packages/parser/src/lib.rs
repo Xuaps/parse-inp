@@ -14,6 +14,17 @@ pub struct RESERVOIR {
     comment: Option<String>
 }
 
+impl RESERVOIR {
+    fn from(properties: Vec<&str>, comment: Option<String>) -> Self {
+        let id = properties[0].to_string();
+        let head = properties[1].parse::<f64>().unwrap();
+        let pattern = if properties.len() > 2 { Some(properties[2].to_string()) } else { None };
+        let comment = comment.map(|s| s.to_string());
+
+        RESERVOIR { id, head, pattern, comment }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct SOURCE {
     node: String,
@@ -21,6 +32,18 @@ pub struct SOURCE {
     strength: f64,
     pattern: Option<String>,
     comment: Option<String>
+}
+
+impl SOURCE {
+    fn from(properties: Vec<&str>, comment: Option<String>) -> Self {
+        let node = properties[0].to_string();
+        let source_type= properties[1].to_string();
+        let strength = properties[2].parse::<f64>().unwrap();
+        let pattern = if properties.len() > 3 { Some(properties[3].to_string()) } else { None };
+        let comment = comment.map(|s| s.to_string());
+
+        SOURCE { node, source_type, strength, pattern, comment }
+    }
 }
 
 impl INP {
@@ -75,29 +98,13 @@ impl INP {
     fn read_reservoir(&mut self, line: &str) {
         let (properties, comment) = self.get_properties_and_comment(line);
 
-        let id = properties[0].to_string();
-        let head = properties[1].parse::<f64>().unwrap();
-        let pattern = if properties.len() > 2 { Some(properties[2].to_string()) } else { None };
-        let comment = comment.map(|s| s.to_string());
-
-        self.reservoirs.push(RESERVOIR  {
-            id,
-            head,
-            pattern,
-            comment
-        });
+        self.reservoirs.push(RESERVOIR::from(properties, comment));
     }
 
     fn read_sources(&mut self, line: &str) {
         let (properties, comment) = self.get_properties_and_comment(line);
 
-        let node = properties[0].to_string();
-        let source_type= properties[1].to_string();
-        let strength = properties[2].parse::<f64>().unwrap();
-        let pattern = if properties.len() > 3 { Some(properties[3].to_string()) } else { None };
-        let comment = comment.map(|s| s.to_string());
-
-        self.sources.push(SOURCE { node, source_type, strength, pattern, comment });
+        self.sources.push(SOURCE::from(properties, comment));
     }
 
     fn get_properties_and_comment<'a>(&'a self, line: &'a str) -> (Vec<&str>, Option<String>) {
