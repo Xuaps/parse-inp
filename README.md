@@ -2,6 +2,32 @@
 
 The main goal of this project is to learn how to code in Rust. Secondary goal is to implement a INP parser.
 
+## Approach update
+
+After start working on this parser I though that to build an AST won't add anything valuable since we have no plan to use it, probably the most simple thing was to read the plain text and build the final structure we really need. 
+
+```
+        +-------------------+
+        |   Input File      |
+        +--------+----------+
+                 |
+                 v
+        +--------+----------+
+        |   Detect section  |
+        +--------+----------+
+                 |
+                 v
+        +--------+------------------+
+        |Process section entry      |
+        +--------+------------------+
+                 |
+                 v
+        +--------+----------------+
+        | Update the inp struct   |
+        +--------+----------------+
+
+```
+
 ## Approach
 
 A parser is a software component that analyzes the structure of a given input, typically a sequence of characters or tokens, according to a specified grammar or syntax. Its main purpose is to determine if the input is syntactically valid and, if so, to create a structured representation of the input that can be further processed.
