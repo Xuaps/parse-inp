@@ -1,3 +1,13 @@
+## 2023 06 19
+
+### properties and comment, make read functions pure and create a sectionable trait
+
+This time I had clear that I wanted to remove the code repeated code on the read_x methods. I started extracted a funtion that given a line returns a vector of strings, the properties and a comment. I continued returning the section struct from this methos and leaving the main one mute the inp struct. Finally I though I could encapsulate the logic to build every struct in a from method implementation.
+
+I think the code is now quite clear as the strategy for parsing every section. To add a new section I only need to add the struct and the implementation of the from method.
+
+There is an extra thing pending, if the algorithm find one section and it is not implemented it will panic. I have though on include a uknown struct to accumalate all the section not defined.
+
 ## 2023 06 07
 
 ### Multiline and comments
