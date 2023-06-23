@@ -77,7 +77,7 @@ impl INP {
                         Some("TITLE") => inp.push_title_line(INP::read_title_line(line).as_str()),
                         Some("SOURCES") => inp.sources.push(INP::build_section::<SOURCE>(line)),
                         Some("RESERVOIRS") => inp.reservoirs.push(INP::build_section::<RESERVOIR>(line)),
-                        other => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
+                        _ => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
                     }
             }
         }
