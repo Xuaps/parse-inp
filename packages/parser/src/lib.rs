@@ -7,7 +7,8 @@ trait Sectionable {
 pub struct INP {
     title: String,
     sources: Vec<SOURCE>,
-    reservoirs: Vec<RESERVOIR>
+    reservoirs: Vec<RESERVOIR>,
+    unknown_sections: Vec<UNKNOWN>
 }
 
 #[derive(Debug, PartialEq)]
@@ -50,9 +51,19 @@ impl Sectionable for SOURCE {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct UNKNOWN {
+    text: String,
+}
+
 impl INP {
     pub fn read(content: &str) -> Self {
-        let mut inp = INP { title: String::new(), sources: Vec::new(), reservoirs: Vec::new() };
+        let mut inp = INP { 
+            title: String::new(), 
+            sources: Vec::new(), 
+            reservoirs: Vec::new(), 
+            unknown_sections: Vec::new(),
+        };
         let mut lines = content.lines();
         let mut section = None;
         while let Some(line) = lines.next() {
@@ -66,7 +77,7 @@ impl INP {
                         Some("TITLE") => inp.push_title_line(INP::read_title_line(line).as_str()),
                         Some("SOURCES") => inp.sources.push(INP::build_section::<SOURCE>(line)),
                         Some("RESERVOIRS") => inp.reservoirs.push(INP::build_section::<RESERVOIR>(line)),
-                        other => panic!("Invalid section {}", other.unwrap_or(""))
+                        other => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
                     }
             }
         }
@@ -124,6 +135,7 @@ mod test {
     use super::INP;
     use super::SOURCE;
     use super::RESERVOIR;
+    use super::UNKNOWN;
 
     #[test]
     fn read_inp_title() {
@@ -184,6 +196,29 @@ mod test {
                     strength: 12.0,
                     pattern: None,
                     comment: Some("Constant mass injection".to_string()) },
+            ]
+        );
+    }
+
+    #[test]
+    fn read_unknown_section() {
+        let input = r#"
+            [TEST] 
+            ;Node  Type    Strength  Pattern 
+            ;-------------------------------- 
+            N1     CONCEN  1.2       Pat1    ;Concentration varies with time
+            N44    MASS    12                
+        "#;
+        let inp = INP::read(input);
+        assert_eq!(
+            inp.unknown_sections, 
+            vec![
+                UNKNOWN { 
+                    text: "            N1     CONCEN  1.2       Pat1    ;Concentration varies with time".to_string(), 
+                },
+                UNKNOWN { 
+                    text: "            N44    MASS    12                ".to_string(), 
+                },
             ]
         );
     }
