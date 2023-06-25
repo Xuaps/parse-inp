@@ -15,6 +15,6 @@
     "webpack-dev-server": "^3.7.1"
   },
   "dependencies": {
-    "parser": "workspace:^"
+    "parser-wasm": "workspace:^"
   }
 }

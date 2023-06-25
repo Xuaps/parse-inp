@@ -1,9 +1,10 @@
+use serde::{Serialize, Deserialize};
 
 trait Sectionable {
     fn from(properties: Vec<&str>, comment: Option<String>) -> Self;
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct INP {
     title: String,
     sources: Vec<SOURCE>,
@@ -11,7 +12,7 @@ pub struct INP {
     unknown_sections: Vec<UNKNOWN>
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct RESERVOIR {
     id: String,
     head: f64,
@@ -30,7 +31,7 @@ impl Sectionable for RESERVOIR {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct SOURCE {
     node: String,
     source_type: String,
@@ -51,7 +52,7 @@ impl Sectionable for SOURCE {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct UNKNOWN {
     text: String,
 }

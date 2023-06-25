@@ -1,7 +1,7 @@
 {
   "author": "xuaps <admin@xuaps.com>",
-  "name": "parser",
+  "name": "parser-wasm",
   "private": true,
-  "main": "pkg/index.js",
+  "main": "pkg/parser_wasm.js",
   "version": "0.1.0"
 }
