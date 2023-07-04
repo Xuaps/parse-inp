@@ -15,6 +15,7 @@
     "webpack-dev-server": "^3.7.1"
   },
   "dependencies": {
-    "parser-wasm": "workspace:^"
+    "parser-wasm": "workspace:^",
+    "vanilla-jsoneditor": "^0.17.8"
   }
 }

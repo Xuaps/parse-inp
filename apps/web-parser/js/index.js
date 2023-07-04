@@ -1,10 +1,22 @@
+import { JSONEditor } from "vanilla-jsoneditor";
+
 import("parser-wasm")
   .then((parser) => {
     const button = document.querySelector("button");
-    addEventListener("click", () => {
+    const editor = new JSONEditor({
+      target: document.getElementById("jsoneditor"),
+      props: {
+        readOnly: true,
+        content: {}
+      }
+    });
+
+    button.addEventListener("click", () => {
       const input = document.querySelector("textarea");
       const result = parser.deserialize_inp(input.value);
-      console.log(result);
+
+      // set json
+      editor.set({ json: result });
     });
   })
   .catch(console.error);
