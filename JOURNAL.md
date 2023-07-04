@@ -1,3 +1,13 @@
+## 2023 07 04
+
+### Github workflow, publlish web-app on pages and add pipes
+
+I wanted to show you all how the parser can be compile to wasm and to be used from a vanilla html/typescript app. I have automatize everything and you can find all the details on the github workflow. Additionally I am running the cargo test before deploy the web app justbto be sure everything is working rightly.
+
+The parser travel the whole file, however very few stryct have been implemented. I was wondering how fast would it be processing a biiger section. I have included pipes and it is really fast. I didn't writ any perofromance test yet but it is clear to me that this approch is really performant.
+
+What is pretty boring is to implement all the structs, even whith the help of copilot. So, for the next steps I would like to tackle something more interetsing, the way I am accessing to the properties is kinda flaky, and I am not taking into account what happen if there is an error on the line. 
+
 ## 2023 06 19
 
 ### properties and comment, make read functions pure and create a sectionable trait
