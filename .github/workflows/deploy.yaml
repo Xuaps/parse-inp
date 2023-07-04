@@ -6,7 +6,7 @@ env:
   APP_PATH: .
  
 jobs:
-  build:
+  build-and-deploy:
     concurrency: ci-${{ github.ref }} 
     runs-on: ubuntu-latest
     steps:
@@ -54,11 +54,6 @@ jobs:
           pnpm run --filter parser-wasm build
           pnpm run --filter web-parser build
 
-  deploy:
-    needs: ["build"]
-    concurrency: ci-${{ github.ref }} 
-    runs-on: ubuntu-latest
-    steps:
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4.2.5
         with:
