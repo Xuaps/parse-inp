@@ -3,5 +3,8 @@
   "name": "parser-wasm",
   "private": true,
   "main": "pkg/parser_wasm.js",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "scripts": {
+    "build": "wasm-pack build"
+  }
 }
