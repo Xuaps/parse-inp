@@ -9,6 +9,7 @@ pub struct INP {
     title: String,
     sources: Vec<SOURCE>,
     reservoirs: Vec<RESERVOIR>,
+    pipes: Vec<PIPE>,
     unknown_sections: Vec<UNKNOWN>
 }
 
@@ -53,6 +54,35 @@ impl Sectionable for SOURCE {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct PIPE {
+    id: String,
+    node1: String,
+    node2: String,
+    length: f64,
+    diameter: f64,
+    roughness: f64,
+    minor_loss: f64,
+    status: String,
+    comment: Option<String>
+}
+
+impl Sectionable for PIPE {
+    fn from(properties: Vec<&str>, comment: Option<String>) -> Self {
+        let id = properties[0].to_string();
+        let node1 = properties[1].to_string();
+        let node2 = properties[2].to_string();
+        let length = properties[3].parse::<f64>().unwrap();
+        let diameter = properties[4].parse::<f64>().unwrap();
+        let roughness = properties[5].parse::<f64>().unwrap();
+        let minor_loss = if properties.len()>6 { properties[6].parse::<f64>().unwrap() } else { 0.0 };
+        let status = if properties.len()>7 {properties[7].to_string()} else { "OPEN".to_string() };
+        let comment = comment.map(|s| s.to_string());
+
+        PIPE { id, node1, node2, length, diameter, roughness, minor_loss, status, comment }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct UNKNOWN {
     text: String,
 }
@@ -63,6 +93,7 @@ impl INP {
             title: String::new(), 
             sources: Vec::new(), 
             reservoirs: Vec::new(), 
+            pipes: Vec::new(),
             unknown_sections: Vec::new(),
         };
         let mut lines = content.lines();
@@ -78,6 +109,7 @@ impl INP {
                         Some("TITLE") => inp.push_title_line(INP::read_title_line(line).as_str()),
                         Some("SOURCES") => inp.sources.push(INP::build_section::<SOURCE>(line)),
                         Some("RESERVOIRS") => inp.reservoirs.push(INP::build_section::<RESERVOIR>(line)),
+                        Some("PIPES") => inp.pipes.push(INP::build_section::<PIPE>(line)),
                         _ => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
                     }
             }
@@ -136,6 +168,7 @@ mod test {
     use super::INP;
     use super::SOURCE;
     use super::RESERVOIR;
+    use super::PIPE;
     use super::UNKNOWN;
 
     #[test]
@@ -197,6 +230,57 @@ mod test {
                     strength: 12.0,
                     pattern: None,
                     comment: Some("Constant mass injection".to_string()) },
+            ]
+        );
+    }
+
+    #[test]
+    fn read_pipes() {
+        let input = r#"
+            [PIPES]
+            ;ID   Node1  Node2   Length   Diam.  Roughness  Mloss   Status
+            ;-------------------------------------------------------------
+            P1    J1     J2     1200      12      120       0.2     OPEN
+            P2    J3     J2      600       6      110       0       CV
+            P3    J1     J10    1000      12      120
+        "#;
+        let inp = INP::read(input);
+        assert_eq!(
+            inp.pipes, 
+            vec![
+                PIPE { 
+                    id: "P1".to_string(), 
+                    node1: "J1".to_string(), 
+                    node2: "J2".to_string(),
+                    length: 1200.0,
+                    diameter: 12.0,
+                    roughness: 120.0,
+                    minor_loss: 0.2,
+                    status: "OPEN".to_string(),
+                    comment: None,
+                },
+                PIPE { 
+                    id: "P2".to_string(), 
+                    node1: "J3".to_string(), 
+                    node2: "J2".to_string(),
+                    length: 600.0,
+                    diameter: 6.0,
+                    roughness: 110.0,
+                    minor_loss: 0.0,
+                    status: "CV".to_string(), 
+                    comment: None,
+                },
+                PIPE { 
+                    id: "P3".to_string(), 
+                    node1: "J1".to_string(), 
+                    node2: "J10".to_string(),
+                    length: 1000.0,
+                    diameter: 12.0,
+                    roughness: 120.0,
+                    minor_loss: 0.0,
+                    status: "OPEN".to_string(),
+                    comment: None,
+                }
             ]
         );
     }
