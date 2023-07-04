@@ -6,7 +6,19 @@ env:
   APP_PATH: .
  
 jobs:
+  test_job:
+    concurrency: ci-${{ github.ref }} 
+    runs-on: ubuntu-latest
+    name: Testing
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Test local rust"
+        uses: Kristories/cargo-test@v1.0.0
+        with:
+          manifest-path: 'packages/parser/Cargo.toml'
+
   build-and-deploy:
+    needs: ["test_job"]
     concurrency: ci-${{ github.ref }} 
     runs-on: ubuntu-latest
     steps:
