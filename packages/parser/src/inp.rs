@@ -11,7 +11,8 @@ pub struct INP {
     sources: Vec<SOURCE>,
     reservoirs: Vec<RESERVOIR>,
     pipes: Vec<PIPE>,
-    unknown_sections: Vec<UNKNOWN>
+    unknown_sections: Vec<UNKNOWN>,
+    errors: Vec<String>
 }
 
 impl INP {
@@ -22,6 +23,7 @@ impl INP {
             reservoirs: Vec::new(), 
             pipes: Vec::new(),
             unknown_sections: Vec::new(),
+            errors: Vec::new(),
         };
         let mut lines = content.lines();
         let mut section = None;
@@ -181,6 +183,28 @@ N44    MASS    12
                 },
                 UNKNOWN { 
                     text: "N44    MASS    12                ".to_string(), 
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn read_inp_with_section_format_error() {
+        let input =r#"
+[[RESERVOIRS]
+R1     512               ;Head stays constant
+R2     120       Pat1    ;Head varies with time
+
+        "#;
+        let inp = INP::read(input);
+        assert_eq!(
+            inp.unknown_sections, 
+            vec![
+                UNKNOWN { 
+                    text: "R1     512               ;Head stays constant".to_string(), 
+                },
+                UNKNOWN { 
+                    text: "R2     120       Pat1    ;Head varies with time".to_string(), 
                 },
             ]
         );
