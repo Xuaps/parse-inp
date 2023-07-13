@@ -100,22 +100,40 @@ mod test {
     use crate::Sectionable;
 
     #[test]
-    fn read_inp_title() {
-        let input = "[TITLE]\nHello World\nLine two\n;comment";
-        let inp = INP::read(input);
-        assert_eq!(inp.title, "Hello World Line two");
-    }
+    fn read_inp() {
+        let input =r#"
+[TITLE]
+Hello World
+Line two
+;comment
 
-    #[test]
-    fn read_inp_reservoirs() {
-        let input = r#"
-            [RESERVOIRS]
-            ;ID    Head      Pattern
-            ;----------------------- 
-            R1     512               ;Head stays constant
-            R2     120       Pat1    ;Head varies with time
+[RESERVOIRS]
+;ID    Head      Pattern
+;----------------------- 
+R1     512               ;Head stays constant
+R2     120       Pat1    ;Head varies with time
+
+[SOURCES] 
+;Node  Type    Strength  Pattern 
+;-------------------------------- 
+N1     CONCEN  1.2       Pat1    ;Concentration varies with time
+N44    MASS    12                ;Constant mass injection
+
+[PIPES]
+;ID   Node1  Node2   Length   Diam.  Roughness  Mloss   Status
+;-------------------------------------------------------------
+P1    J1     J2     1200      12      120       0.2     OPEN
+P2    J3     J2      600       6      110       0       CV
+P3    J1     J10    1000      12      120
+
+[TEST] 
+;Node  Type    Strength  Pattern 
+;-------------------------------- 
+N1     CONCEN  1.2       Pat1    ;Concentration varies with time
+N44    MASS    12                
         "#;
         let inp = INP::read(input);
+        assert_eq!(inp.title, "Hello World Line two");
         assert_eq!(
             inp.reservoirs, 
             vec![
@@ -129,18 +147,6 @@ mod test {
                 )
             ]
         );
-    }
-
-    #[test]
-    fn read_sources() {
-        let input = r#"
-            [SOURCES] 
-            ;Node  Type    Strength  Pattern 
-            ;-------------------------------- 
-            N1     CONCEN  1.2       Pat1    ;Concentration varies with time
-            N44    MASS    12                ;Constant mass injection
-        "#;
-        let inp = INP::read(input);
         assert_eq!(
             inp.sources, 
             vec![SOURCE::from_section(
@@ -152,19 +158,6 @@ mod test {
                 Some("Constant mass injection".to_string())
             )]
         );
-    }
-
-    #[test]
-    fn read_pipes() {
-        let input = r#"
-            [PIPES]
-            ;ID   Node1  Node2   Length   Diam.  Roughness  Mloss   Status
-            ;-------------------------------------------------------------
-            P1    J1     J2     1200      12      120       0.2     OPEN
-            P2    J3     J2      600       6      110       0       CV
-            P3    J1     J10    1000      12      120
-        "#;
-        let inp = INP::read(input);
         assert_eq!(
             inp.pipes, 
             vec![PIPE::from_section(
@@ -180,26 +173,14 @@ mod test {
                 None
             )]
         );
-    }
-
-    #[test]
-    fn read_unknown_section() {
-        let input = r#"
-            [TEST] 
-            ;Node  Type    Strength  Pattern 
-            ;-------------------------------- 
-            N1     CONCEN  1.2       Pat1    ;Concentration varies with time
-            N44    MASS    12                
-        "#;
-        let inp = INP::read(input);
         assert_eq!(
             inp.unknown_sections, 
             vec![
                 UNKNOWN { 
-                    text: "            N1     CONCEN  1.2       Pat1    ;Concentration varies with time".to_string(), 
+                    text: "N1     CONCEN  1.2       Pat1    ;Concentration varies with time".to_string(), 
                 },
                 UNKNOWN { 
-                    text: "            N44    MASS    12                ".to_string(), 
+                    text: "N44    MASS    12                ".to_string(), 
                 },
             ]
         );
