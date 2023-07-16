@@ -1,3 +1,15 @@
+## 2023 07 16
+
+### Add error handling
+
+I want to move incorrect lines to a special collection called error. The first step has been to return a Resulr instead of a section. I have used something called associated type. I don't like it, to me this impolementation is leaking some trait internals but, so far so good.
+
+## 2023 07 14
+
+### Add some structure
+
+I have created some modules and moved everything to their own file. Still thinking in the righth granularity, this one works but is difficult to use from different modules. Another thing to revisit in the future.
+
 ## 2023 07 04
 
 ### Github workflow, publlish web-app on pages and add pipes
