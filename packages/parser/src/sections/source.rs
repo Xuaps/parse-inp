@@ -11,7 +11,9 @@ pub struct SOURCE {
 }
 
 impl Sectionable for SOURCE {
-    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Self {
+    type SelfType = SOURCE;
+
+    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<SOURCE, String> {
         let node = properties[0].to_string();
         let source_type = properties[1].to_string();
         let strength = properties[2].parse::<f64>().unwrap();
@@ -22,12 +24,14 @@ impl Sectionable for SOURCE {
         };
         let comment = comment.map(|s| s.to_string());
 
-        SOURCE {
+        let source = SOURCE {
             node,
             source_type,
             strength,
             pattern,
             comment,
-        }
+        };
+
+        Ok(source)
     }
 }

@@ -1,3 +1,7 @@
 pub trait Sectionable {
-    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Self;
+    type SelfType;
+
+    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<Self::SelfType, String>
+    where
+    Self: Sized;
 }

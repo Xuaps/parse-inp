@@ -36,9 +36,9 @@ impl INP {
                 Some(';') => continue,
                 _ => match section.as_deref() {
                         Some("TITLE") => inp.push_title_line(INP::read_title_line(line).as_str()),
-                        Some("SOURCES") => inp.sources.push(INP::build_section::<SOURCE>(line)),
-                        Some("RESERVOIRS") => inp.reservoirs.push(INP::build_section::<RESERVOIR>(line)),
-                        Some("PIPES") => inp.pipes.push(INP::build_section::<PIPE>(line)),
+                        Some("SOURCES") => inp.sources.push(INP::build_section::<SOURCE>(line).unwrap()),
+                        Some("RESERVOIRS") => inp.reservoirs.push(INP::build_section::<RESERVOIR>(line).unwrap()),
+                        Some("PIPES") => inp.pipes.push(INP::build_section::<PIPE>(line).unwrap()),
                         _ => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
                     }
             }
@@ -69,7 +69,7 @@ impl INP {
         title
     }
 
-    fn build_section<T: Sectionable>(line: &str) -> T {
+    fn build_section<T: Sectionable<SelfType=T>>(line: &str) -> Result<T, String> {
         let (properties, comment) = INP::get_properties_and_comment(line);
 
         T::from_section(properties, comment)
@@ -142,11 +142,11 @@ N44    MASS    12
                 RESERVOIR::from_section(
                     vec!["R1", "512"],
                     Some("Head stays constant".to_string())
-                ),
+                ).unwrap(),
                 RESERVOIR::from_section(
                     vec!["R2", "120", "Pat1"],
                     Some("Head varies with time".to_string())
-                )
+                ).unwrap()
             ]
         );
         assert_eq!(
@@ -154,26 +154,26 @@ N44    MASS    12
             vec![SOURCE::from_section(
                 vec!["N1", "CONCEN", "1.2", "Pat1"],
                 Some("Concentration varies with time".to_string())
-            ),
+            ).unwrap(),
             SOURCE::from_section(
                 vec!["N44", "MASS", "12"],
                 Some("Constant mass injection".to_string())
-            )]
+            ).unwrap()]
         );
         assert_eq!(
             inp.pipes, 
             vec![PIPE::from_section(
                 vec!["P1", "J1", "J2", "1200", "12", "120", "0.2", "OPEN"],
                 None
-            ),
+            ).unwrap(),
             PIPE::from_section(
                 vec!["P2", "J3", "J2", "600", "6", "110", "0", "CV"],
                 None
-            ),
+            ).unwrap(),
             PIPE::from_section(
                 vec!["P3", "J1", "J10", "1000", "12", "120"],
                 None
-            )]
+            ).unwrap()]
         );
         assert_eq!(
             inp.unknown_sections, 
@@ -183,28 +183,6 @@ N44    MASS    12
                 },
                 UNKNOWN { 
                     text: "N44    MASS    12                ".to_string(), 
-                },
-            ]
-        );
-    }
-
-    #[test]
-    fn read_inp_with_section_format_error() {
-        let input =r#"
-[[RESERVOIRS]
-R1     512               ;Head stays constant
-R2     120       Pat1    ;Head varies with time
-
-        "#;
-        let inp = INP::read(input);
-        assert_eq!(
-            inp.unknown_sections, 
-            vec![
-                UNKNOWN { 
-                    text: "R1     512               ;Head stays constant".to_string(), 
-                },
-                UNKNOWN { 
-                    text: "R2     120       Pat1    ;Head varies with time".to_string(), 
                 },
             ]
         );

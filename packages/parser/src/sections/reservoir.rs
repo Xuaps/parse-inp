@@ -10,7 +10,9 @@ pub struct RESERVOIR {
 }
 
 impl Sectionable for RESERVOIR {
-    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Self {
+    type SelfType = RESERVOIR;
+
+    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<RESERVOIR, String> {
         let id = properties[0].to_string();
         let head = properties[1].parse::<f64>().unwrap();
         let pattern = if properties.len() > 2 {
@@ -20,11 +22,13 @@ impl Sectionable for RESERVOIR {
         };
         let comment = comment.map(|s| s.to_string());
 
-        RESERVOIR {
+        let reservoir = RESERVOIR {
             id,
             head,
             pattern,
             comment,
-        }
+        };
+
+        Ok(reservoir)
     }
 }
