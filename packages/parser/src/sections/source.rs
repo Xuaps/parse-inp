@@ -1,4 +1,4 @@
-use super::sectionable::Sectionable;
+use super::sectionable::{Sectionable, SectionError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -13,7 +13,7 @@ pub struct SOURCE {
 impl Sectionable for SOURCE {
     type SelfType = SOURCE;
 
-    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<SOURCE, String> {
+    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<SOURCE, SectionError> {
         let node = properties[0].to_string();
         let source_type = properties[1].to_string();
         let strength = properties[2].parse::<f64>().unwrap();

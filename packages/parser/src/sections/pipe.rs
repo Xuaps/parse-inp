@@ -1,4 +1,4 @@
-use super::sectionable::Sectionable;
+use super::sectionable::{Sectionable, SectionError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -17,9 +17,9 @@ pub struct PIPE {
 impl Sectionable for PIPE {
     type SelfType = PIPE;
 
-    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<PIPE, String> {
+    fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<PIPE, SectionError> {
         if properties.len() < 6 {
-            return Err("Not enough properties to create PIPE section".to_string());
+            return Err(SectionError { message: "Not enough properties to create PIPE section".to_string() });
         }
 
         let id = properties[0].to_string();
@@ -114,9 +114,9 @@ mod test {
             Some("Description".to_string()),
         );
 
-        assert_eq!(
-            a_pipe,
-            Err("Not enough properties to create PIPE section".to_string())
+        assert!(
+            a_pipe.is_err(),
+            "Not enough properties to create PIPE section"
         );
     }
 }

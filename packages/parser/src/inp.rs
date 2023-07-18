@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use crate::Sectionable;
+use crate::{Sectionable, SectionError};
 use crate::sections::source::SOURCE;
 use crate::sections::reservoir::RESERVOIR;
 use crate::sections::pipe::PIPE;
@@ -37,7 +37,11 @@ impl INP {
                 _ => match section.as_deref() {
                         Some("TITLE") => inp.push_title_line(INP::read_title_line(line).as_str()),
                         Some("SOURCES") => inp.sources.push(INP::build_section::<SOURCE>(line).unwrap()),
-                        Some("RESERVOIRS") => inp.reservoirs.push(INP::build_section::<RESERVOIR>(line).unwrap()),
+                        Some("RESERVOIRS") => match INP::build_section::<RESERVOIR>(line)
+                        {
+                            Ok(reservoir) => inp.reservoirs.push(reservoir),
+                            Err(e) => inp.errors.push(e.message)
+                        }
                         Some("PIPES") => inp.pipes.push(INP::build_section::<PIPE>(line).unwrap()),
                         _ => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
                     }
@@ -69,7 +73,7 @@ impl INP {
         title
     }
 
-    fn build_section<T: Sectionable<SelfType=T>>(line: &str) -> Result<T, String> {
+    fn build_section<T: Sectionable<SelfType=T>>(line: &str) -> Result<T, SectionError> {
         let (properties, comment) = INP::get_properties_and_comment(line);
 
         T::from_section(properties, comment)
@@ -183,6 +187,42 @@ N44    MASS    12
                 },
                 UNKNOWN { 
                     text: "N44    MASS    12                ".to_string(), 
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn read_inp_with_section_error() {
+        let input =r#"
+[RESERVOIRS]
+;ID    Head      Pattern
+;----------------------- 
+R1     Pat1               ;Head stays constant
+R2         ;Head varies with time
+
+        "#;
+        let inp = INP::read(input);
+        assert_eq!(inp.errors, ["invalid float literal", "Not enough properties to create RESERVOIR section"]);
+    }
+
+    #[test]
+    fn read_inp_with_section_format_error() {
+        let input =r#"
+[[RESERVOIRS]
+R1     Test               ;Head stays constant
+R2     120       Pat1    ;Head varies with time
+
+        "#;
+        let inp = INP::read(input);
+        assert_eq!(
+            inp.unknown_sections, 
+            vec![
+                UNKNOWN { 
+                    text: "R1     Test               ;Head stays constant".to_string(), 
+                },
+                UNKNOWN { 
+                    text: "R2     120       Pat1    ;Head varies with time".to_string(), 
                 },
             ]
         );
