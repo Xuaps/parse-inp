@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 use crate::{Sectionable, SectionError};
-use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN};
+use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN, ERROR};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct INP {
@@ -9,7 +9,7 @@ pub struct INP {
     reservoirs: Vec<RESERVOIR>,
     pipes: Vec<PIPE>,
     unknown_sections: Vec<UNKNOWN>,
-    errors: Vec<String>
+    errors: Vec<ERROR>
 }
 
 impl INP {
@@ -22,6 +22,7 @@ impl INP {
             unknown_sections: Vec::new(),
             errors: Vec::new(),
         };
+        let mut line_number = 1;
         let mut lines = content.lines();
         let mut section = None;
         while let Some(line) = lines.next() {
@@ -37,12 +38,13 @@ impl INP {
                         Some("RESERVOIRS") => match INP::build_section::<RESERVOIR>(line)
                         {
                             Ok(reservoir) => inp.reservoirs.push(reservoir),
-                            Err(e) => inp.errors.push(e.message)
+                            Err(e) => inp.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
                         }
                         Some("PIPES") => inp.pipes.push(INP::build_section::<PIPE>(line).unwrap()),
                         _ => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
                     }
             }
+            line_number += 1;
         }
         inp
     }
@@ -101,6 +103,7 @@ mod test {
     use super::PIPE;
     use super::UNKNOWN;
     use crate::Sectionable;
+    use crate::sections::ERROR;
 
     #[test]
     fn read_inp() {
@@ -200,7 +203,16 @@ R2         ;Head varies with time
 
         "#;
         let inp = INP::read(input);
-        assert_eq!(inp.errors, ["invalid float literal", "Not enough properties to create RESERVOIR section"]);
+        assert_eq!(inp.errors[0], ERROR {
+                message: "invalid float literal".to_string(), 
+                line: "R1     Pat1               ;Head stays constant".to_string(),
+                line_number: 2
+        });
+        assert_eq!(inp.errors[1], ERROR {
+                message: "Not enough properties to create RESERVOIR section".to_string(), 
+                line: "R2         ;Head varies with time".to_string(),
+                line_number: 3
+        });
     }
 
     #[test]
