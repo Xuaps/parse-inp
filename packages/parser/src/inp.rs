@@ -1,9 +1,6 @@
 use serde::{Serialize, Deserialize};
 use crate::{Sectionable, SectionError};
-use crate::sections::source::SOURCE;
-use crate::sections::reservoir::RESERVOIR;
-use crate::sections::pipe::PIPE;
-use crate::sections::unknown::UNKNOWN;
+use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct INP {
