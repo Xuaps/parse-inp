@@ -91,7 +91,11 @@ mod test {
 
         assert!(
             a_reservoir.is_err(),
-            "Not enough properties to create RESERVOIR section"
+        );
+        assert!(
+            a_reservoir
+                .unwrap_err()
+                .message == "Not enough properties to create RESERVOIR section",
         );
     }
 
@@ -104,7 +108,13 @@ mod test {
 
         assert!(
             a_reservoir.is_err(),
-            "Wrong type for property in RESERVOIR section"
+            "Expected error to be returned",
         );
+        assert!(
+            a_reservoir
+                .unwrap_err()
+                .message == "invalid float literal",
+            "Expected error message to be 'invalid float literal'",
+        )
     }
 }

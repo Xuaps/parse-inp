@@ -25,11 +25,11 @@ impl Sectionable for PIPE {
         let id = properties[0].to_string();
         let node1 = properties[1].to_string();
         let node2 = properties[2].to_string();
-        let length = properties[3].parse::<f64>().unwrap();
-        let diameter = properties[4].parse::<f64>().unwrap();
-        let roughness = properties[5].parse::<f64>().unwrap();
+        let length = properties[3].parse::<f64>()?;
+        let diameter = properties[4].parse::<f64>()?;
+        let roughness = properties[5].parse::<f64>()?;
         let minor_loss = if properties.len() > 6 {
-            properties[6].parse::<f64>().unwrap()
+            properties[6].parse::<f64>()?
         } else {
             0.0
         };
@@ -114,9 +114,20 @@ mod test {
             Some("Description".to_string()),
         );
 
-        assert!(
-            a_pipe.is_err(),
-            "Not enough properties to create PIPE section"
+        assert!(a_pipe.is_err(), "Should return error");
+        assert!(a_pipe.err().unwrap().message == "Not enough properties to create PIPE section",
+            "Should return error with message 'Not enough properties to create PIPE section'"); 
+    }
+
+    #[test]
+    fn return_error_wrong_type() {
+        let a_pipe = PIPE::from_section(
+            vec!["P3", "J1", "J10", "1000", "12", "Test"],
+            Some("Head stays constant".to_string()),
         );
+
+        assert!(a_pipe.is_err(), "Should return error");
+        assert!(a_pipe.err().unwrap().message == "invalid float literal", 
+            "Should return error with message 'invalid float literal'");
     }
 }
