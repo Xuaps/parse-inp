@@ -1,3 +1,10 @@
+## 2023 07 21
+
+### Add error section
+I have added a new eror sections to store all the problematic lines during parsing. I have move some test to the rigth place and it has given me a good clue about some responsability spread out all over the sections, the properties validation. I have to think in how to encapsulate that. 
+
+Regarding eror section and filling, I am thinking on implement carete a function to handle it and use composition to add it the to functions that add sections. 
+
 ## 2023 07 16
 
 ### Add error handling
