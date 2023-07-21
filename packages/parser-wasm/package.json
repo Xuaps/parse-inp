@@ -5,6 +5,6 @@
   "main": "pkg/parser_wasm.js",
   "version": "0.1.0",
   "scripts": {
-    "build": "wasm-pack build"
+    "build": "wasm-pack build --release"
   }
 }
