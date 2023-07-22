@@ -33,14 +33,10 @@ impl INP {
                 }
                 Some(';') => continue,
                 _ => match section.as_deref() {
-                        Some("TITLE") => inp.push_title_line(INP::read_title_line(line).as_str()),
-                        Some("SOURCES") => inp.sources.push(INP::build_section::<SOURCE>(line).unwrap()),
-                        Some("RESERVOIRS") => match INP::build_section::<RESERVOIR>(line)
-                        {
-                            Ok(reservoir) => inp.reservoirs.push(reservoir),
-                            Err(e) => inp.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
-                        }
-                        Some("PIPES") => inp.pipes.push(INP::build_section::<PIPE>(line).unwrap()),
+                        Some("TITLE") => inp.set_title_line(INP::read_title_line(line).as_str()),
+                        Some("SOURCES") => inp.add_source(line, line_number),
+                        Some("RESERVOIRS") => inp.add_reservoir(line, line_number),
+                        Some("PIPES") => inp.add_pipe(line, line_number),
                         _ => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
                     }
             }
@@ -86,11 +82,32 @@ impl INP {
         (properties, comment)
     }
 
-    fn push_title_line(&mut self, s: &str) {
+    fn set_title_line(&mut self, s: &str) {
         if !self.title.is_empty() {
             self.title.push(' ');
         }
         self.title.push_str(s);
+    }
+
+    fn add_source(&mut self, line: &str, line_number: u32) {
+        match INP::build_section::<SOURCE>(line) {
+            Ok(source) => self.sources.push(source),
+            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+        }
+    }
+
+    fn add_reservoir(&mut self, line: &str, line_number: u32) {
+        match INP::build_section::<RESERVOIR>(line) {
+            Ok(reservoir) => self.reservoirs.push(reservoir),
+            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+        }
+    }
+
+    fn add_pipe(&mut self, line: &str, line_number: u32) {
+        match INP::build_section::<PIPE>(line) {
+            Ok(pipe) => self.pipes.push(pipe),
+            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+        }
     }
 }
 
