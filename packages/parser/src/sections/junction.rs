@@ -1,10 +1,3 @@
-//One line for each junction containing:
-
-// ID label
-// Elevation, ft (m)
-// Base demand flow (flow units) (optional)
-// Demand pattern ID (optional)
-//
 use super::sectionable::{Sectionable, SectionError};
 use serde::{Deserialize, Serialize};
 
