@@ -15,7 +15,7 @@ extern {
 }
 
 #[wasm_bindgen]
-pub fn deserialize_inp(content: &str) -> JsValue {
+pub fn deserialize_inp(content: String) -> JsValue {
     serde_wasm_bindgen::to_value(&INP::read(content)).unwrap()
 }
 
