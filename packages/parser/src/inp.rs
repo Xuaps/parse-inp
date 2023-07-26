@@ -12,6 +12,43 @@ pub struct INP {
     errors: Vec<ERROR>
 }
 
+fn read_section(line: &str) -> Option<String> {
+    let mut section = String::new();
+    let mut chars = line.chars().skip(1);
+    let mut c = chars.next();
+    while c != Some(']') {
+        section.push(c.unwrap());
+        c = chars.next();
+    }
+
+    Some(section)
+}
+
+fn read_title_line(line: &str) -> String {
+    let mut title = String::new();
+    let mut chars = line.chars();
+    let mut c = chars.next();
+    while c != None {
+        title.push(c.unwrap());
+        c = chars.next();
+    }
+    title
+}
+
+fn build_section<T: Sectionable<SelfType=T>>(line: &str) -> Result<T, SectionError> {
+    let (properties, comment) = get_properties_and_comment(line);
+
+    T::from_section(properties, comment)
+}
+
+fn get_properties_and_comment<'a>(line: &'a str) -> (Vec<&str>, Option<String>) {
+    let mut parts = line.split(";");
+    let properties = parts.next().unwrap_or("").split_whitespace().collect::<Vec<&'a str>>();
+    let comment = parts.next().map(|s| s.to_string());
+
+    (properties, comment)
+}
+
 impl INP {
     pub fn read(content: &str) -> Self {
         let mut inp = INP { 
@@ -29,11 +66,11 @@ impl INP {
             match line.trim().chars().next() {
                 None => continue,
                 Some('[') => {
-                    section = INP::read_section(line.trim());
+                    section = read_section(line.trim());
                 }
                 Some(';') => continue,
                 _ => match section.as_deref() {
-                        Some("TITLE") => inp.set_title_line(INP::read_title_line(line).as_str()),
+                        Some("TITLE") => inp.set_title_line(read_title_line(line).as_str()),
                         Some("SOURCES") => inp.add_source(line, line_number),
                         Some("RESERVOIRS") => inp.add_reservoir(line, line_number),
                         Some("PIPES") => inp.add_pipe(line, line_number),
@@ -45,42 +82,6 @@ impl INP {
         inp
     }
 
-    fn read_section(line: &str) -> Option<String> {
-        let mut section = String::new();
-        let mut chars = line.chars().skip(1);
-        let mut c = chars.next();
-        while c != Some(']') {
-            section.push(c.unwrap());
-            c = chars.next();
-        }
-
-        Some(section)
-    }
-
-    fn read_title_line(line: &str) -> String {
-        let mut title = String::new();
-        let mut chars = line.chars();
-        let mut c = chars.next();
-        while c != None {
-            title.push(c.unwrap());
-            c = chars.next();
-        }
-        title
-    }
-
-    fn build_section<T: Sectionable<SelfType=T>>(line: &str) -> Result<T, SectionError> {
-        let (properties, comment) = INP::get_properties_and_comment(line);
-
-        T::from_section(properties, comment)
-    }
-
-    fn get_properties_and_comment<'a>(line: &'a str) -> (Vec<&str>, Option<String>) {
-        let mut parts = line.split(";");
-        let properties = parts.next().unwrap_or("").split_whitespace().collect::<Vec<&'a str>>();
-        let comment = parts.next().map(|s| s.to_string());
-
-        (properties, comment)
-    }
 
     fn set_title_line(&mut self, s: &str) {
         if !self.title.is_empty() {
@@ -90,21 +91,21 @@ impl INP {
     }
 
     fn add_source(&mut self, line: &str, line_number: u32) {
-        match INP::build_section::<SOURCE>(line) {
+        match build_section::<SOURCE>(line) {
             Ok(source) => self.sources.push(source),
             Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 
     fn add_reservoir(&mut self, line: &str, line_number: u32) {
-        match INP::build_section::<RESERVOIR>(line) {
+        match build_section::<RESERVOIR>(line) {
             Ok(reservoir) => self.reservoirs.push(reservoir),
             Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 
     fn add_pipe(&mut self, line: &str, line_number: u32) {
-        match INP::build_section::<PIPE>(line) {
+        match build_section::<PIPE>(line) {
             Ok(pipe) => self.pipes.push(pipe),
             Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
         }
