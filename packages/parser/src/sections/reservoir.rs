@@ -17,13 +17,9 @@ impl Sectionable for RESERVOIR {
             return Err(SectionError { message: "Not enough properties to create RESERVOIR section".to_string()});
         }
 
-        let id = properties[0].to_string();
-        let head = properties[1].parse::<f64>()?;
-        let pattern = if properties.len() > 2 {
-            Some(properties[2].to_string())
-        } else {
-            None
-        };
+        let id = properties.get(0).unwrap_or(&"").to_string();
+        let head = properties.get(1).unwrap_or(&"0.0").parse::<f64>()?;
+        let pattern = properties.get(2).map(|s| s.to_string());
         let comment = comment.map(|s| s.to_string());
 
         let reservoir = RESERVOIR {
