@@ -22,22 +22,14 @@ impl Sectionable for PIPE {
             return Err(SectionError { message: "Not enough properties to create PIPE section".to_string() });
         }
 
-        let id = properties[0].to_string();
-        let node1 = properties[1].to_string();
-        let node2 = properties[2].to_string();
-        let length = properties[3].parse::<f64>()?;
-        let diameter = properties[4].parse::<f64>()?;
-        let roughness = properties[5].parse::<f64>()?;
-        let minor_loss = if properties.len() > 6 {
-            properties[6].parse::<f64>()?
-        } else {
-            0.0
-        };
-        let status = if properties.len() > 7 {
-            properties[7].to_string()
-        } else {
-            "OPEN".to_string()
-        };
+        let id = properties.get(0).unwrap_or(&"").to_string();
+        let node1 = properties.get(1).unwrap_or(&"").to_string();
+        let node2 = properties.get(2).unwrap_or(&"").to_string();
+        let length = properties.get(3).unwrap_or(&"0.0").parse::<f64>()?;
+        let diameter = properties.get(4).unwrap_or(&"0.0").parse::<f64>()?;
+        let roughness = properties.get(5).unwrap_or(&"0.0").parse::<f64>()?;
+        let minor_loss = properties.get(6).unwrap_or(&"0.0").parse::<f64>()?;
+        let status = properties.get(7).unwrap_or(&"OPEN").to_string();
         let comment = comment.map(|s| s.to_string());
 
         let pipe = PIPE {
