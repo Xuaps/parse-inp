@@ -1,15 +1,3 @@
-//One line for each junction containing:
-
-// ID label
-// Bottom elevation, ft (m)
-// Initial water level, ft (m)
-// Minimum water level, ft (m)
-// Maximum water level, ft (m)
-// Nominal diameter, ft (m)
-// Minimum volume, cubic ft (cubic meters)
-// Volume curve ID (optional)
-// Overflow indicator (YES / NO) (optional)
-//
 use super::sectionable::{Sectionable, SectionError};
 use serde::{Deserialize, Serialize};
 
@@ -31,23 +19,15 @@ impl Sectionable for TANK {
     type SelfType = TANK;
 
     fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<Self::SelfType, SectionError> {
-        let id = properties[0].to_string();
-        let elevation = properties.get(1).parse::<f64>().unwrap();
-        let init_level = properties.get(2).parse::<f64>().unwrap();
-        let min_level = properties[3].parse::<f64>().unwrap();
-        let max_level = properties[4].parse::<f64>().unwrap();
-        let diameter = properties[5].parse::<f64>().unwrap();
-        let min_volume = properties[6].parse::<f64>().unwrap();
-        let volume_curve_id = if properties.len() > 7 {
-            Some(properties[7].to_string())
-        } else {
-            None
-        };
-        let overflow = if properties.len() > 8 {
-            properties[8] == "YES"
-        } else {
-            false
-        };
+        let id = properties.get(0).unwrap_or(&"").to_string();
+        let elevation = properties.get(1).unwrap_or(&"").parse::<f64>()?;
+        let init_level = properties.get(2).unwrap_or(&"").parse::<f64>()?;
+        let min_level = properties.get(3).unwrap_or(&"").parse::<f64>()?;
+        let max_level = properties.get(4).unwrap_or(&"").parse::<f64>()?;
+        let diameter = properties.get(5).unwrap_or(&"").parse::<f64>()?;
+        let min_volume = properties.get(6).unwrap_or(&"").parse::<f64>()?;
+        let volume_curve_id = properties.get(7).map(|s| s.to_string());
+        let overflow = properties.get(8).map(|s| s.to_string().to_lowercase()).unwrap_or("no".to_string()) == "yes";
 
         Ok(TANK {
             id,
@@ -59,7 +39,60 @@ impl Sectionable for TANK {
             min_volume,
             volume_curve_id,
             overflow,
-            comment,
+            comment
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::TANK;
+    use super::Sectionable;
+    use super::SectionError;
+
+    #[test]
+    fn create_tank_from_section() {
+        let tank = TANK::from_section(
+            vec!["TANK1", "10.0", "20.0", "30.0", "40.0", "50.0", "60.0", "VOLUME_CURVE", "YES"],
+            None).unwrap();    
+        
+        assert_eq!(tank.id, "TANK1");
+        assert_eq!(tank.elevation, 10.0);
+        assert_eq!(tank.init_level, 20.0);
+        assert_eq!(tank.min_level, 30.0);
+        assert_eq!(tank.max_level, 40.0);
+        assert_eq!(tank.diameter, 50.0);
+        assert_eq!(tank.min_volume, 60.0);
+        assert_eq!(tank.volume_curve_id, Some("VOLUME_CURVE".to_string()));
+        assert_eq!(tank.overflow, true);
+    }
+    
+    #[test]
+    fn create_tank_from_section_without_optional_fields() {
+        let tank = TANK::from_section(
+            vec!["TANK1", "10.0", "20.0", "30.0", "40.0", "50.0", "60.0"],
+            None).unwrap();    
+        
+        assert_eq!(tank.id, "TANK1");
+        assert_eq!(tank.elevation, 10.0);
+        assert_eq!(tank.init_level, 20.0);
+        assert_eq!(tank.min_level, 30.0);
+        assert_eq!(tank.max_level, 40.0);
+        assert_eq!(tank.diameter, 50.0);
+        assert_eq!(tank.min_volume, 60.0);
+        assert_eq!(tank.volume_curve_id, None);
+        assert_eq!(tank.overflow, false);
+    }
+
+    #[test]
+    fn create_tank_from_section_with_wrong_properties() {
+        let tank = TANK::from_section(
+            vec!["TANK1", "10.0", "20.0", "30.0", "40.0", "50.0", "WRONG"],
+            None);   
+
+        assert_eq!(
+            tank,
+            Err(SectionError { message: "invalid float literal".to_string() })
+        );
     }
 }

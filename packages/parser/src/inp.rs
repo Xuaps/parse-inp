@@ -1,13 +1,14 @@
 use serde::{Serialize, Deserialize};
 use crate::{Sectionable, SectionError};
-use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN, ERROR, JUNCTION};
+use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN, ERROR, JUNCTION, TANK};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct INP {
     title: String,
     junctions: Vec<JUNCTION>,
-    sources: Vec<SOURCE>,
     reservoirs: Vec<RESERVOIR>,
+    tanks: Vec<TANK>,
+    sources: Vec<SOURCE>,
     pipes: Vec<PIPE>,
     unknown_sections: Vec<UNKNOWN>,
     errors: Vec<ERROR>
@@ -56,6 +57,7 @@ impl INP {
             title: String::new(), 
             junctions: Vec::new(),
             sources: Vec::new(), 
+            tanks: Vec::new(),
             reservoirs: Vec::new(), 
             pipes: Vec::new(),
             unknown_sections: Vec::new(),
@@ -74,6 +76,7 @@ impl INP {
                 _ => match section.as_deref() {
                         Some("TITLE") => inp.set_title_line(read_title_line(line).as_str()),
                         Some("JUNCTIONS") => inp.add_junction(line, line_number),
+                        Some("TANKS") => inp.add_tank(line, line_number),
                         Some("SOURCES") => inp.add_source(line, line_number),
                         Some("RESERVOIRS") => inp.add_reservoir(line, line_number),
                         Some("PIPES") => inp.add_pipe(line, line_number),
@@ -120,6 +123,13 @@ impl INP {
             Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
+
+    fn add_tank(&mut self, line: &str, line_number: u32) {
+        match build_section::<TANK>(line) {
+            Ok(tank) => self.tanks.push(tank),
+            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+        }
+    }
 }
 
 
@@ -142,6 +152,7 @@ mod test {
         assert_eq!(inp.sources.len(), 0);
         assert_eq!(inp.pipes.len(), 1648);
         assert_eq!(inp.junctions.len(), 2050);
+        assert_eq!(inp.tanks.len(), 4);
         assert!(inp.unknown_sections.len() > 0);
     }
 
