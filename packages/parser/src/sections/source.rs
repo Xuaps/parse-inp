@@ -18,14 +18,10 @@ impl Sectionable for SOURCE {
             return Err(SectionError { message: "Not enough properties to create SOURCE section".to_string()});
         }
 
-        let node = properties[0].to_string();
-        let source_type = properties[1].to_string();
-        let strength = properties[2].parse::<f64>()?;
-        let pattern = if properties.len() > 3 {
-            Some(properties[3].to_string())
-        } else {
-            None
-        };
+        let node = properties.get(0).unwrap_or(&"").to_string();
+        let source_type = properties.get(1).unwrap_or(&"").to_string();
+        let strength = properties.get(2).unwrap_or(&"0.0").parse::<f64>()?;
+        let pattern = properties.get(3).map(|s| s.to_string());
         let comment = comment.map(|s| s.to_string());
 
         let source = SOURCE {
