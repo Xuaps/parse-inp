@@ -22,7 +22,6 @@ impl Sectionable for SOURCE {
         let source_type = properties.get(1).unwrap_or(&"").to_string();
         let strength = properties.get(2).unwrap_or(&"0.0").parse::<f64>()?;
         let pattern = properties.get(3).map(|s| s.to_string());
-        let comment = comment.map(|s| s.to_string());
 
         let source = SOURCE {
             node,

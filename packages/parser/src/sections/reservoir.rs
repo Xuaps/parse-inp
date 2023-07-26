@@ -20,7 +20,6 @@ impl Sectionable for RESERVOIR {
         let id = properties.get(0).unwrap_or(&"").to_string();
         let head = properties.get(1).unwrap_or(&"0.0").parse::<f64>()?;
         let pattern = properties.get(2).map(|s| s.to_string());
-        let comment = comment.map(|s| s.to_string());
 
         let reservoir = RESERVOIR {
             id,

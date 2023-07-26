@@ -22,7 +22,6 @@ impl Sectionable for JUNCTION {
         let elevation = properties.get(1).unwrap_or(&"0.0").parse::<f64>()?;
         let base_demand_flow = properties.get(2).map(|s| s.parse::<f64>().unwrap());
         let demand_pattern_id = properties.get(3).map(|s| s.to_string());
-        let comment = comment.map(|s| s.to_string());
 
         let junction = JUNCTION {
             id,

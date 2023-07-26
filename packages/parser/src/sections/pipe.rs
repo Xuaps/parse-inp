@@ -30,7 +30,6 @@ impl Sectionable for PIPE {
         let roughness = properties.get(5).unwrap_or(&"0.0").parse::<f64>()?;
         let minor_loss = properties.get(6).unwrap_or(&"0.0").parse::<f64>()?;
         let status = properties.get(7).unwrap_or(&"OPEN").to_string();
-        let comment = comment.map(|s| s.to_string());
 
         let pipe = PIPE {
             id,
