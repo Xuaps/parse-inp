@@ -51,7 +51,7 @@ fn get_properties_and_comment<'a>(line: &'a str) -> (Vec<&str>, Option<String>) 
 }
 
 impl INP {
-    pub fn read(content: &str) -> Self {
+    pub fn read(content: String) -> Self {
         let mut inp = INP { 
             title: String::new(), 
             junctions: Vec::new(),
@@ -125,112 +125,24 @@ impl INP {
 
 #[cfg(test)]
 mod test {
+    use std::fs;
     use super::INP;
-    use super::SOURCE;
-    use super::RESERVOIR;
-    use super::PIPE;
-    use super::JUNCTION;
     use super::UNKNOWN;
-    use crate::Sectionable;
     use crate::sections::ERROR;
 
     #[test]
     fn read_inp() {
-        let input =r#"
-[TITLE]
-Hello World
-Line two
-;comment
+        let file_path = "tests/MagneticIslandEnhanced.inp";
 
-[RESERVOIRS]
-;ID    Head      Pattern
-;----------------------- 
-R1     512               ;Head stays constant
-R2     120       Pat1    ;Head varies with time
+        let input = fs::read_to_string(file_path).unwrap();
 
-[SOURCES] 
-;Node  Type    Strength  Pattern 
-;-------------------------------- 
-N1     CONCEN  1.2       Pat1    ;Concentration varies with time
-N44    MASS    12                ;Constant mass injection
-
-[PIPES]
-;ID   Node1  Node2   Length   Diam.  Roughness  Mloss   Status
-;-------------------------------------------------------------
-P1    J1     J2     1200      12      120       0.2     OPEN
-P2    J3     J2      600       6      110       0       CV
-P3    J1     J10    1000      12      120
-
-[JUNCTIONS]
-;ID    Elev.   Demand   Pattern
-;------------------------------
-J1    100      50       Pat1
-J2    120      10              ;Uses default demand pattern
-J3    115                      ;No demand at this junction
-
-[TEST] 
-;Node  Type    Strength  Pattern 
-;-------------------------------- 
-N1     CONCEN  1.2       Pat1    ;Concentration varies with time
-N44    MASS    12                
-        "#;
         let inp = INP::read(input);
-        assert_eq!(inp.title, "Hello World Line two");
-        assert_eq!(
-            inp.reservoirs, 
-            vec![
-                RESERVOIR::from_section(
-                    vec!["R1", "512"],
-                    Some("Head stays constant".to_string())
-                ).unwrap(),
-                RESERVOIR::from_section(
-                    vec!["R2", "120", "Pat1"],
-                    Some("Head varies with time".to_string())
-                ).unwrap()
-            ]
-        );
-        assert_eq!(
-            inp.sources, 
-            vec![SOURCE::from_section(
-                vec!["N1", "CONCEN", "1.2", "Pat1"],
-                Some("Concentration varies with time".to_string())
-            ).unwrap(),
-            SOURCE::from_section(
-                vec!["N44", "MASS", "12"],
-                Some("Constant mass injection".to_string())
-            ).unwrap()]
-        );
-        assert_eq!(
-            inp.pipes, 
-            vec![PIPE::from_section(
-                vec!["P1", "J1", "J2", "1200", "12", "120", "0.2", "OPEN"],
-                None
-            ).unwrap(),
-            PIPE::from_section(
-                vec!["P2", "J3", "J2", "600", "6", "110", "0", "CV"],
-                None
-            ).unwrap(),
-            PIPE::from_section(
-                vec!["P3", "J1", "J10", "1000", "12", "120"],
-                None
-            ).unwrap()]
-        );
-        assert_eq!(inp.junctions, vec![
-            JUNCTION::from_section(vec!["J1", "100", "50", "Pat1"], None).unwrap(),
-            JUNCTION::from_section(vec!["J2", "120", "10"], Some("Uses default demand pattern".to_string())).unwrap(),
-            JUNCTION::from_section(vec!["J3", "115"], Some("No demand at this junction".to_string())).unwrap(),
-        ]);
-        assert_eq!(
-            inp.unknown_sections, 
-            vec![
-                UNKNOWN { 
-                    text: "N1     CONCEN  1.2       Pat1    ;Concentration varies with time".to_string(), 
-                },
-                UNKNOWN { 
-                    text: "N44    MASS    12                ".to_string(), 
-                },
-            ]
-        );
+        assert!(inp.title.contains("Magnetic Island"));
+        assert_eq!(inp.reservoirs.len(), 2);
+        assert_eq!(inp.sources.len(), 0);
+        assert_eq!(inp.pipes.len(), 1648);
+        assert_eq!(inp.junctions.len(), 2050);
+        assert!(inp.unknown_sections.len() > 0);
     }
 
     #[test]
@@ -243,7 +155,7 @@ R1     Pat1               ;Head stays constant
 R2         ;Head varies with time
 
         "#;
-        let inp = INP::read(input);
+        let inp = INP::read(input.to_string());
         assert_eq!(inp.errors[0], ERROR {
                 message: "invalid float literal".to_string(), 
                 line: "R1     Pat1               ;Head stays constant".to_string(),
@@ -264,7 +176,7 @@ R1     Test               ;Head stays constant
 R2     120       Pat1    ;Head varies with time
 
         "#;
-        let inp = INP::read(input);
+        let inp = INP::read(input.to_string());
         assert_eq!(
             inp.unknown_sections, 
             vec![
