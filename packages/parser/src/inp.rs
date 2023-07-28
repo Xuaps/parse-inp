@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 use crate::{Sectionable, SectionError};
-use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN, ERROR, JUNCTION, TANK, PUMP};
+use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN, ERROR, JUNCTION, TANK, PUMP, VALVE};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct INP {
@@ -10,6 +10,7 @@ pub struct INP {
     tanks: Vec<TANK>,
     pipes: Vec<PIPE>,
     pumps: Vec<PUMP>,
+    valves: Vec<VALVE>,
     sources: Vec<SOURCE>,
     unknown_sections: Vec<UNKNOWN>,
     errors: Vec<ERROR>
@@ -62,6 +63,7 @@ impl INP {
             reservoirs: Vec::new(), 
             pipes: Vec::new(),
             pumps: Vec::new(),
+            valves: Vec::new(),
             unknown_sections: Vec::new(),
             errors: Vec::new(),
         };
@@ -83,6 +85,7 @@ impl INP {
                         Some("RESERVOIRS") => inp.add_reservoir(line, line_number),
                         Some("PIPES") => inp.add_pipe(line, line_number),
                         Some("PUMPS") => inp.add_pump(line, line_number),
+                        Some("VALVES") => inp.add_valve(line, line_number),
                         _ => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
                     }
             }
@@ -140,6 +143,13 @@ impl INP {
             Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
+
+    fn add_valve(&mut self, line: &str, line_number: u32) {
+        match build_section::<VALVE>(line) {
+            Ok(valve) => self.valves.push(valve),
+            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+        }
+    }
 }
 
 
@@ -164,6 +174,7 @@ mod test {
         assert_eq!(inp.junctions.len(), 2050);
         assert_eq!(inp.tanks.len(), 4);
         assert_eq!(inp.pumps.len(), 5);
+        assert_eq!(inp.valves.len(), 507);
         assert!(inp.unknown_sections.len() > 0);
     }
 
