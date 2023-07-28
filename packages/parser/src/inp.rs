@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 use crate::{Sectionable, SectionError};
-use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN, ERROR, JUNCTION, TANK, PUMP, VALVE};
+use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN, ERROR, JUNCTION, TANK, PUMP, VALVE, EMITTER};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct INP {
@@ -11,6 +11,7 @@ pub struct INP {
     pipes: Vec<PIPE>,
     pumps: Vec<PUMP>,
     valves: Vec<VALVE>,
+    emitters: Vec<EMITTER>,
     sources: Vec<SOURCE>,
     unknown_sections: Vec<UNKNOWN>,
     errors: Vec<ERROR>
@@ -58,12 +59,13 @@ impl INP {
         let mut inp = INP { 
             title: String::new(), 
             junctions: Vec::new(),
-            sources: Vec::new(), 
             tanks: Vec::new(),
             reservoirs: Vec::new(), 
             pipes: Vec::new(),
             pumps: Vec::new(),
             valves: Vec::new(),
+            emitters: Vec::new(),
+            sources: Vec::new(), 
             unknown_sections: Vec::new(),
             errors: Vec::new(),
         };
@@ -80,12 +82,13 @@ impl INP {
                 _ => match section.as_deref() {
                         Some("TITLE") => inp.set_title_line(read_title_line(line).as_str()),
                         Some("JUNCTIONS") => inp.add_junction(line, line_number),
-                        Some("TANKS") => inp.add_tank(line, line_number),
-                        Some("SOURCES") => inp.add_source(line, line_number),
                         Some("RESERVOIRS") => inp.add_reservoir(line, line_number),
+                        Some("TANKS") => inp.add_tank(line, line_number),
                         Some("PIPES") => inp.add_pipe(line, line_number),
                         Some("PUMPS") => inp.add_pump(line, line_number),
                         Some("VALVES") => inp.add_valve(line, line_number),
+                        Some("EMITTERS") => inp.add_emitter(line, line_number),
+                        Some("SOURCES") => inp.add_source(line, line_number),
                         _ => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
                     }
             }
@@ -150,6 +153,13 @@ impl INP {
             Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
+
+    fn add_emitter(&mut self, line: &str, line_number: u32) {
+        match build_section::<EMITTER>(line) {
+            Ok(emitter) => self.emitters.push(emitter),
+            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+        }
+    }
 }
 
 
@@ -169,12 +179,13 @@ mod test {
         let inp = INP::read(input);
         assert!(inp.title.contains("Magnetic Island"));
         assert_eq!(inp.reservoirs.len(), 2);
-        assert_eq!(inp.sources.len(), 0);
         assert_eq!(inp.pipes.len(), 1648);
         assert_eq!(inp.junctions.len(), 2050);
         assert_eq!(inp.tanks.len(), 4);
         assert_eq!(inp.pumps.len(), 5);
         assert_eq!(inp.valves.len(), 507);
+        assert_eq!(inp.emitters.len(), 2020);
+        assert_eq!(inp.sources.len(), 0);
         assert!(inp.unknown_sections.len() > 0);
     }
 
