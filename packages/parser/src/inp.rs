@@ -1,20 +1,20 @@
 use serde::{Serialize, Deserialize};
 use crate::{Sectionable, SectionError};
-use crate::sections::{SOURCE, RESERVOIR, PIPE, UNKNOWN, ERROR, JUNCTION, TANK, PUMP, VALVE, EMITTER};
+use crate::sections::{Source, Reservoir, Pipe, Unknown, Error, Junction, Tank, Pump, Valve, Emitter};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct INP {
     title: String,
-    junctions: Vec<JUNCTION>,
-    reservoirs: Vec<RESERVOIR>,
-    tanks: Vec<TANK>,
-    pipes: Vec<PIPE>,
-    pumps: Vec<PUMP>,
-    valves: Vec<VALVE>,
-    emitters: Vec<EMITTER>,
-    sources: Vec<SOURCE>,
-    unknown_sections: Vec<UNKNOWN>,
-    errors: Vec<ERROR>
+    junctions: Vec<Junction>,
+    reservoirs: Vec<Reservoir>,
+    tanks: Vec<Tank>,
+    pipes: Vec<Pipe>,
+    pumps: Vec<Pump>,
+    valves: Vec<Valve>,
+    emitters: Vec<Emitter>,
+    sources: Vec<Source>,
+    unknown_sections: Vec<Unknown>,
+    errors: Vec<Error>
 }
 
 fn read_section(line: &str) -> Option<String> {
@@ -33,7 +33,7 @@ fn read_title_line(line: &str) -> String {
     let mut title = String::new();
     let mut chars = line.chars();
     let mut c = chars.next();
-    while c != None {
+    while c.is_some() {
         title.push(c.unwrap());
         c = chars.next();
     }
@@ -47,7 +47,7 @@ fn build_section<T: Sectionable<SelfType=T>>(line: &str) -> Result<T, SectionErr
 }
 
 fn get_properties_and_comment<'a>(line: &'a str) -> (Vec<&str>, Option<String>) {
-    let mut parts = line.split(";");
+    let mut parts = line.split(';');
     let properties = parts.next().unwrap_or("").split_whitespace().collect::<Vec<&'a str>>();
     let comment = parts.next().map(|s| s.to_string());
 
@@ -70,9 +70,9 @@ impl INP {
             errors: Vec::new(),
         };
         let mut line_number = 1;
-        let mut lines = content.lines();
+        let lines = content.lines();
         let mut section = None;
-        while let Some(line) = lines.next() {
+        for line in lines {
             match line.trim().chars().next() {
                 None => continue,
                 Some('[') => {
@@ -89,7 +89,7 @@ impl INP {
                         Some("VALVES") => inp.add_valve(line, line_number),
                         Some("EMITTERS") => inp.add_emitter(line, line_number),
                         Some("SOURCES") => inp.add_source(line, line_number),
-                        _ => inp.unknown_sections.push(UNKNOWN { text: line.to_string() })
+                        _ => inp.unknown_sections.push(Unknown { text: line.to_string() })
                     }
             }
             line_number += 1;
@@ -106,58 +106,58 @@ impl INP {
     }
 
     fn add_source(&mut self, line: &str, line_number: u32) {
-        match build_section::<SOURCE>(line) {
+        match build_section::<Source>(line) {
             Ok(source) => self.sources.push(source),
-            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 
     fn add_reservoir(&mut self, line: &str, line_number: u32) {
-        match build_section::<RESERVOIR>(line) {
+        match build_section::<Reservoir>(line) {
             Ok(reservoir) => self.reservoirs.push(reservoir),
-            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 
     fn add_pipe(&mut self, line: &str, line_number: u32) {
-        match build_section::<PIPE>(line) {
+        match build_section::<Pipe>(line) {
             Ok(pipe) => self.pipes.push(pipe),
-            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 
     fn add_junction(&mut self, line: &str, line_number: u32) {
-        match build_section::<JUNCTION>(line) {
+        match build_section::<Junction>(line) {
             Ok(junction) => self.junctions.push(junction),
-            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 
     fn add_tank(&mut self, line: &str, line_number: u32) {
-        match build_section::<TANK>(line) {
+        match build_section::<Tank>(line) {
             Ok(tank) => self.tanks.push(tank),
-            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 
     fn add_pump(&mut self, line: &str, line_number: u32) {
-        match build_section::<PUMP>(line) {
+        match build_section::<Pump>(line) {
             Ok(pump) => self.pumps.push(pump),
-            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 
     fn add_valve(&mut self, line: &str, line_number: u32) {
-        match build_section::<VALVE>(line) {
+        match build_section::<Valve>(line) {
             Ok(valve) => self.valves.push(valve),
-            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 
     fn add_emitter(&mut self, line: &str, line_number: u32) {
-        match build_section::<EMITTER>(line) {
+        match build_section::<Emitter>(line) {
             Ok(emitter) => self.emitters.push(emitter),
-            Err(e) => self.errors.push(ERROR { message: e.to_string(), line: line.to_string(), line_number })
+            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
         }
     }
 }
@@ -167,8 +167,8 @@ impl INP {
 mod test {
     use std::fs;
     use super::INP;
-    use super::UNKNOWN;
-    use crate::sections::ERROR;
+    use super::Unknown;
+    use crate::sections::Error;
 
     #[test]
     fn read_inp() {
@@ -200,12 +200,12 @@ R2         ;Head varies with time
 
         "#;
         let inp = INP::read(input.to_string());
-        assert_eq!(inp.errors[0], ERROR {
+        assert_eq!(inp.errors[0], Error {
                 message: "invalid float literal".to_string(), 
                 line: "R1     Pat1               ;Head stays constant".to_string(),
                 line_number: 2
         });
-        assert_eq!(inp.errors[1], ERROR {
+        assert_eq!(inp.errors[1], Error {
                 message: "Not enough properties to create RESERVOIR section".to_string(), 
                 line: "R2         ;Head varies with time".to_string(),
                 line_number: 3
@@ -224,10 +224,10 @@ R2     120       Pat1    ;Head varies with time
         assert_eq!(
             inp.unknown_sections, 
             vec![
-                UNKNOWN { 
+                Unknown { 
                     text: "R1     Test               ;Head stays constant".to_string(), 
                 },
-                UNKNOWN { 
+                Unknown { 
                     text: "R2     120       Pat1    ;Head varies with time".to_string(), 
                 },
             ]

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct UNKNOWN {
+pub struct Unknown {
     pub text: String,
 }

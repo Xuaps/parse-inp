@@ -2,7 +2,7 @@ use super::sectionable::{Sectionable, SectionError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct TANK {
+pub struct Tank {
     pub id: String,
     pub elevation: f64,
     pub init_level: f64,
@@ -15,11 +15,11 @@ pub struct TANK {
     pub comment: Option<String>,
 }
 
-impl Sectionable for TANK {
-    type SelfType = TANK;
+impl Sectionable for Tank {
+    type SelfType = Tank;
 
     fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<Self::SelfType, SectionError> {
-        let id = properties.get(0).unwrap_or(&"").to_string();
+        let id = properties.first().unwrap_or(&"").to_string();
         let elevation = properties.get(1).unwrap_or(&"").parse::<f64>()?;
         let init_level = properties.get(2).unwrap_or(&"").parse::<f64>()?;
         let min_level = properties.get(3).unwrap_or(&"").parse::<f64>()?;
@@ -29,7 +29,7 @@ impl Sectionable for TANK {
         let volume_curve_id = properties.get(7).map(|s| s.to_string());
         let overflow = properties.get(8).map(|s| s.to_string().to_lowercase()).unwrap_or("no".to_string()) == "yes";
 
-        Ok(TANK {
+        Ok(Tank {
             id,
             elevation,
             init_level,
@@ -46,13 +46,13 @@ impl Sectionable for TANK {
 
 #[cfg(test)]
 mod test {
-    use super::TANK;
+    use super::Tank;
     use super::Sectionable;
     use super::SectionError;
 
     #[test]
     fn create_tank_from_section() {
-        let tank = TANK::from_section(
+        let tank = Tank::from_section(
             vec!["TANK1", "10.0", "20.0", "30.0", "40.0", "50.0", "60.0", "VOLUME_CURVE", "YES"],
             None).unwrap();    
         
@@ -69,7 +69,7 @@ mod test {
     
     #[test]
     fn create_tank_from_section_without_optional_fields() {
-        let tank = TANK::from_section(
+        let tank = Tank::from_section(
             vec!["TANK1", "10.0", "20.0", "30.0", "40.0", "50.0", "60.0"],
             None).unwrap();    
         
@@ -86,7 +86,7 @@ mod test {
 
     #[test]
     fn create_tank_from_section_with_wrong_properties() {
-        let tank = TANK::from_section(
+        let tank = Tank::from_section(
             vec!["TANK1", "10.0", "20.0", "30.0", "40.0", "50.0", "WRONG"],
             None);   
 

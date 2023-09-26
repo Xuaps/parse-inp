@@ -2,7 +2,7 @@ use super::sectionable::{Sectionable, SectionError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct PUMP {
+pub struct Pump {
     pub id: String,
     pub start_node: String,
     pub end_node: String,
@@ -13,11 +13,11 @@ pub struct PUMP {
     pub comment: Option<String>,
 }
 
-impl Sectionable for PUMP {
-    type SelfType = PUMP;
+impl Sectionable for Pump {
+    type SelfType = Pump;
 
     fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<Self::SelfType, SectionError> {
-        let id = properties.get(0).unwrap_or(&"").to_string();
+        let id = properties.first().unwrap_or(&"").to_string();
         let start_node = properties.get(1).unwrap_or(&"").to_string();
         let end_node = properties.get(2).unwrap_or(&"").to_string();
         let mut power = None;
@@ -39,7 +39,7 @@ impl Sectionable for PUMP {
             return Err(SectionError { message: "Invalid section".to_string() });
         }
 
-        Ok(PUMP {
+        Ok(Pump {
             id,
             start_node,
             end_node,
@@ -54,12 +54,12 @@ impl Sectionable for PUMP {
 
 #[cfg(test)]
 mod test {
-    use super::PUMP;
+    use super::Pump;
     use super::Sectionable;
 
     #[test]
     fn create_pump_from_section() {
-        let pump = PUMP::from_section(
+        let pump = Pump::from_section(
             vec!["PUMP1", "NODE1", "NODE2", "POWER", "10.0", "PATTERN", "PATTERN1"],
             None).unwrap();    
         
@@ -74,7 +74,7 @@ mod test {
 
     #[test]
     fn either_power_or_head_must_be_supplied_for_each_pump() {
-        let pump = PUMP::from_section(
+        let pump = Pump::from_section(
             vec!["PUMP1", "NODE1", "NODE2", "SPEED", "10.0", "PATTERN", "PATTERN1"],
             None);
 
@@ -83,7 +83,7 @@ mod test {
 
     #[test]
     fn id_start_node_and_end_node_are_compulsory () {
-        let pump = PUMP::from_section(
+        let pump = Pump::from_section(
             vec!["PUMP1", "NODE1", "POWER", "10.0", "PATTERN", "PATTERN1"],
             None);
 

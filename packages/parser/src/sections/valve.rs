@@ -2,7 +2,7 @@ use super::sectionable::{Sectionable, SectionError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct VALVE {
+pub struct Valve {
     id: String,
     start_node: String,
     end_node: String,
@@ -15,35 +15,35 @@ pub struct VALVE {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum ValveType {
-    PRV,
-    PSV,
-    PBV,
-    FCV,
-    TCV,
-    GPV,
+    Prv,
+    Psv,
+    Pbv,
+    Fcv,
+    Tcv,
+    Gpv,
 }
 
-impl Sectionable for VALVE {
-    type SelfType = VALVE;
+impl Sectionable for Valve {
+    type SelfType = Valve;
 
     fn from_section(properties: Vec<&str>, comment: Option<String>) -> Result<Self::SelfType, SectionError> {
-        let id = properties.get(0).unwrap_or(&"").to_string();
+        let id = properties.first().unwrap_or(&"").to_string();
         let start_node = properties.get(1).unwrap_or(&"").to_string();
         let end_node = properties.get(2).unwrap_or(&"").to_string();
         let diameter = properties.get(3).unwrap_or(&"").parse::<f64>()?;
         let valve_type = match properties.get(4) {
-            Some(&"PRV") => ValveType::PRV,
-            Some(&"PSV") => ValveType::PSV,
-            Some(&"PBV") => ValveType::PBV,
-            Some(&"FCV") => ValveType::FCV,
-            Some(&"TCV") => ValveType::TCV,
-            Some(&"GPV") => ValveType::GPV,
+            Some(&"PRV") => ValveType::Prv,
+            Some(&"PSV") => ValveType::Psv,
+            Some(&"PBV") => ValveType::Pbv,
+            Some(&"FCV") => ValveType::Fcv,
+            Some(&"TCV") => ValveType::Tcv,
+            Some(&"GPV") => ValveType::Gpv,
             _ => return Err(SectionError { message: "Invalid section".to_string() })
         };
         let valve_setting = properties.get(5).unwrap_or(&"").parse::<f64>()?;
         let minor_loss_coefficient = properties.get(6).unwrap_or(&"").parse::<f64>()?;
 
-        Ok(VALVE {
+        Ok(Valve {
             id,
             start_node,
             end_node,
@@ -58,25 +58,25 @@ impl Sectionable for VALVE {
 
 #[cfg(test)]
 mod test {
-    use super::VALVE;
+    use super::Valve;
     use super::ValveType;
     use super::Sectionable;
 
     #[test]
     fn create_a_valve() {
-        let a_valve = VALVE::from_section(
+        let a_valve = Valve::from_section(
             vec!["V1", "J1", "J2", "12", "PRV", "120", "0.2"],
             None,
         );
 
         assert_eq!(
             a_valve,
-            Ok(VALVE {
+            Ok(Valve {
                 id: "V1".to_string(),
                 start_node: "J1".to_string(),
                 end_node: "J2".to_string(),
                 diameter: 12.0,
-                valve_type: ValveType::PRV,
+                valve_type: ValveType::Prv,
                 valve_setting: 120.0,
                 minor_loss_coefficient: 0.2,
                 comment: None,
@@ -86,7 +86,7 @@ mod test {
 
     #[test]
     fn all_the_properties_are_compulsory() {
-        let a_valve = VALVE::from_section(
+        let a_valve = Valve::from_section(
             vec!["V1", "J1", "J2", "12", "PRV", "0.2"],
             None,
         );
