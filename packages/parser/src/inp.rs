@@ -51,6 +51,15 @@ fn build_section<T: Sectionable<SelfType=T>>(line: &str) -> Result<T, SectionErr
     T::from_section(properties, comment)
 }
 
+fn add<T: Sectionable<SelfType=T>>(line: LineData, items: &mut Vec<T>, errors: &mut Vec<Error>)
+{
+    match build_section::<T>(line.content.as_str()) {
+        Ok(source) => items.push(source),
+        Err(e) => errors.push(Error { message: e.to_string(), line: line.content.to_string(), line_number: line.number })
+    }
+    
+}
+
 fn get_properties_and_comment<'a>(line: &'a str) -> (Vec<&str>, Option<String>) {
     let mut parts = line.split(';');
     let properties = parts.next().unwrap_or("").split_whitespace().collect::<Vec<&'a str>>();
@@ -87,14 +96,14 @@ impl INP {
                 Some(';') => continue,
                 _ => match section.as_deref() {
                         Some("TITLE") => inp.set_title_line(read_title_line(line).as_str()),
-                        Some("JUNCTIONS") => INP::add::<Junction>(data, &mut inp.junctions, &mut inp.errors),
-                        Some("RESERVOIRS") => INP::add::<Reservoir>(data, &mut inp.reservoirs, &mut inp.errors),
-                        Some("TANKS") => INP::add::<Tank>(data, &mut inp.tanks, &mut inp.errors),
-                        Some("PIPES") => INP::add::<Pipe>(data, &mut inp.pipes, &mut inp.errors),
-                        Some("PUMPS") => INP::add::<Pump>(data, &mut inp.pumps, &mut inp.errors),
-                        Some("VALVES") => INP::add::<Valve>(data, &mut inp.valves, &mut inp.errors),
-                        Some("EMITTERS") => INP::add::<Emitter>(data, &mut inp.emitters, &mut inp.errors),
-                        Some("SOURCES") => INP::add::<Source>(data, &mut inp.sources, &mut inp.errors),
+                        Some("JUNCTIONS") => add::<Junction>(data, &mut inp.junctions, &mut inp.errors),
+                        Some("RESERVOIRS") => add::<Reservoir>(data, &mut inp.reservoirs, &mut inp.errors),
+                        Some("TANKS") => add::<Tank>(data, &mut inp.tanks, &mut inp.errors),
+                        Some("PIPES") => add::<Pipe>(data, &mut inp.pipes, &mut inp.errors),
+                        Some("PUMPS") => add::<Pump>(data, &mut inp.pumps, &mut inp.errors),
+                        Some("VALVES") => add::<Valve>(data, &mut inp.valves, &mut inp.errors),
+                        Some("EMITTERS") => add::<Emitter>(data, &mut inp.emitters, &mut inp.errors),
+                        Some("SOURCES") => add::<Source>(data, &mut inp.sources, &mut inp.errors),
                         _ => inp.unknown_sections.push(Unknown { text: line.to_string() })
                     }
             }
@@ -103,21 +112,11 @@ impl INP {
         inp
     }
 
-
     fn set_title_line(&mut self, s: &str) {
         if !self.title.is_empty() {
             self.title.push(' ');
         }
         self.title.push_str(s);
-    }
-
-    fn add<T: Sectionable<SelfType=T>>(line: LineData, items: &mut Vec<T>, errors: &mut Vec<Error>)
-    {
-        match build_section::<T>(line.content.as_str()) {
-            Ok(source) => items.push(source),
-            Err(e) => errors.push(Error { message: e.to_string(), line: line.content.to_string(), line_number: line.number })
-        }
-        
     }
 }
 
