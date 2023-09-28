@@ -4,5 +4,5 @@ use serde::{Deserialize, Serialize};
 pub struct Error {
     pub message: String,
     pub line: String,
-    pub line_number: u32,
+    pub line_number: i32,
 }

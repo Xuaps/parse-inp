@@ -17,6 +17,11 @@ pub struct INP {
     errors: Vec<Error>
 }
 
+struct LineData {
+    content: String,
+    number: i32
+}
+
 fn read_section(line: &str) -> Option<String> {
     let mut section = String::new();
     let mut chars = line.chars().skip(1);
@@ -73,6 +78,7 @@ impl INP {
         let lines = content.lines();
         let mut section = None;
         for line in lines {
+            let data = LineData { content: line.to_string() , number: line_number };
             match line.trim().chars().next() {
                 None => continue,
                 Some('[') => {
@@ -81,14 +87,14 @@ impl INP {
                 Some(';') => continue,
                 _ => match section.as_deref() {
                         Some("TITLE") => inp.set_title_line(read_title_line(line).as_str()),
-                        Some("JUNCTIONS") => INP::add::<Junction>(line, line_number, &mut inp.junctions, &mut inp.errors),
-                        Some("RESERVOIRS") => INP::add::<Reservoir>(line, line_number, &mut inp.reservoirs, &mut inp.errors),
-                        Some("TANKS") => INP::add::<Tank>(line, line_number, &mut inp.tanks, &mut inp.errors),
-                        Some("PIPES") => INP::add::<Pipe>(line, line_number, &mut inp.pipes, &mut inp.errors),
-                        Some("PUMPS") => INP::add::<Pump>(line, line_number, &mut inp.pumps, &mut inp.errors),
-                        Some("VALVES") => INP::add::<Valve>(line, line_number, &mut inp.valves, &mut inp.errors),
-                        Some("EMITTERS") => INP::add::<Emitter>(line, line_number, &mut inp.emitters, &mut inp.errors),
-                        Some("SOURCES") => INP::add::<Source>(line, line_number, &mut inp.sources, &mut inp.errors),
+                        Some("JUNCTIONS") => INP::add::<Junction>(data, &mut inp.junctions, &mut inp.errors),
+                        Some("RESERVOIRS") => INP::add::<Reservoir>(data, &mut inp.reservoirs, &mut inp.errors),
+                        Some("TANKS") => INP::add::<Tank>(data, &mut inp.tanks, &mut inp.errors),
+                        Some("PIPES") => INP::add::<Pipe>(data, &mut inp.pipes, &mut inp.errors),
+                        Some("PUMPS") => INP::add::<Pump>(data, &mut inp.pumps, &mut inp.errors),
+                        Some("VALVES") => INP::add::<Valve>(data, &mut inp.valves, &mut inp.errors),
+                        Some("EMITTERS") => INP::add::<Emitter>(data, &mut inp.emitters, &mut inp.errors),
+                        Some("SOURCES") => INP::add::<Source>(data, &mut inp.sources, &mut inp.errors),
                         _ => inp.unknown_sections.push(Unknown { text: line.to_string() })
                     }
             }
@@ -105,11 +111,11 @@ impl INP {
         self.title.push_str(s);
     }
 
-    fn add<T: Sectionable<SelfType=T>>(line: &str, line_number: u32, items: &mut Vec<T>, errors: &mut Vec<Error>)
+    fn add<T: Sectionable<SelfType=T>>(line: LineData, items: &mut Vec<T>, errors: &mut Vec<Error>)
     {
-        match build_section::<T>(line) {
+        match build_section::<T>(line.content.as_str()) {
             Ok(source) => items.push(source),
-            Err(e) => errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
+            Err(e) => errors.push(Error { message: e.to_string(), line: line.content.to_string(), line_number: line.number })
         }
         
     }
