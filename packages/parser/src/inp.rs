@@ -81,14 +81,14 @@ impl INP {
                 Some(';') => continue,
                 _ => match section.as_deref() {
                         Some("TITLE") => inp.set_title_line(read_title_line(line).as_str()),
-                        Some("JUNCTIONS") => inp.add_junction(line, line_number),
-                        Some("RESERVOIRS") => inp.add_reservoir(line, line_number),
-                        Some("TANKS") => inp.add_tank(line, line_number),
-                        Some("PIPES") => inp.add_pipe(line, line_number),
-                        Some("PUMPS") => inp.add_pump(line, line_number),
-                        Some("VALVES") => inp.add_valve(line, line_number),
-                        Some("EMITTERS") => inp.add_emitter(line, line_number),
-                        Some("SOURCES") => inp.add_source(line, line_number),
+                        Some("JUNCTIONS") => INP::add::<Junction>(line, line_number, &mut inp.junctions, &mut inp.errors),
+                        Some("RESERVOIRS") => INP::add::<Reservoir>(line, line_number, &mut inp.reservoirs, &mut inp.errors),
+                        Some("TANKS") => INP::add::<Tank>(line, line_number, &mut inp.tanks, &mut inp.errors),
+                        Some("PIPES") => INP::add::<Pipe>(line, line_number, &mut inp.pipes, &mut inp.errors),
+                        Some("PUMPS") => INP::add::<Pump>(line, line_number, &mut inp.pumps, &mut inp.errors),
+                        Some("VALVES") => INP::add::<Valve>(line, line_number, &mut inp.valves, &mut inp.errors),
+                        Some("EMITTERS") => INP::add::<Emitter>(line, line_number, &mut inp.emitters, &mut inp.errors),
+                        Some("SOURCES") => INP::add::<Source>(line, line_number, &mut inp.sources, &mut inp.errors),
                         _ => inp.unknown_sections.push(Unknown { text: line.to_string() })
                     }
             }
@@ -105,60 +105,13 @@ impl INP {
         self.title.push_str(s);
     }
 
-    fn add_source(&mut self, line: &str, line_number: u32) {
-        match build_section::<Source>(line) {
-            Ok(source) => self.sources.push(source),
-            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
+    fn add<T: Sectionable<SelfType=T>>(line: &str, line_number: u32, items: &mut Vec<T>, errors: &mut Vec<Error>)
+    {
+        match build_section::<T>(line) {
+            Ok(source) => items.push(source),
+            Err(e) => errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
         }
-    }
-
-    fn add_reservoir(&mut self, line: &str, line_number: u32) {
-        match build_section::<Reservoir>(line) {
-            Ok(reservoir) => self.reservoirs.push(reservoir),
-            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
-        }
-    }
-
-    fn add_pipe(&mut self, line: &str, line_number: u32) {
-        match build_section::<Pipe>(line) {
-            Ok(pipe) => self.pipes.push(pipe),
-            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
-        }
-    }
-
-    fn add_junction(&mut self, line: &str, line_number: u32) {
-        match build_section::<Junction>(line) {
-            Ok(junction) => self.junctions.push(junction),
-            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
-        }
-    }
-
-    fn add_tank(&mut self, line: &str, line_number: u32) {
-        match build_section::<Tank>(line) {
-            Ok(tank) => self.tanks.push(tank),
-            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
-        }
-    }
-
-    fn add_pump(&mut self, line: &str, line_number: u32) {
-        match build_section::<Pump>(line) {
-            Ok(pump) => self.pumps.push(pump),
-            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
-        }
-    }
-
-    fn add_valve(&mut self, line: &str, line_number: u32) {
-        match build_section::<Valve>(line) {
-            Ok(valve) => self.valves.push(valve),
-            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
-        }
-    }
-
-    fn add_emitter(&mut self, line: &str, line_number: u32) {
-        match build_section::<Emitter>(line) {
-            Ok(emitter) => self.emitters.push(emitter),
-            Err(e) => self.errors.push(Error { message: e.to_string(), line: line.to_string(), line_number })
-        }
+        
     }
 }
 
