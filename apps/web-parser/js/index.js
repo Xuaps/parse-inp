@@ -2,7 +2,6 @@ import { JSONEditor } from "vanilla-jsoneditor";
 
 import("parser-wasm")
   .then((parser) => {
-    const button = document.querySelector("button");
     const editor = new JSONEditor({
       target: document.getElementById("jsoneditor"),
       props: {
@@ -11,12 +10,15 @@ import("parser-wasm")
       }
     });
 
-    button.addEventListener("click", () => {
-      const input = document.querySelector("textarea");
-      const result = parser.deserialize_inp(input.value);
+    const inputElement = document.getElementById("inp");
+    const handleFiles = () => {
+      inputElement.files[0].text().then((text) => {
+        const result = parser.deserialize_inp(text);
 
-      // set json
-      editor.set({ json: result });
-    });
+        editor.set({ json: result });
+      });
+    };
+
+    inputElement.addEventListener("change", handleFiles, false);
   })
   .catch(console.error);
