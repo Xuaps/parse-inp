@@ -5,11 +5,14 @@ pub mod reservoir;
 pub mod pump;
 pub mod valve;
 pub mod emitter;
-pub mod sectionable;
+pub mod quality;
 pub mod source;
+
+pub mod sectionable;
 pub mod unknown;
 pub mod error;
 
+pub use quality::Quality;
 pub use pipe::Pipe;
 pub use reservoir::Reservoir;
 pub use junction::Junction;

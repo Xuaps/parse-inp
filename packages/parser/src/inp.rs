@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 use crate::{Sectionable, SectionError};
-use crate::sections::{Source, Reservoir, Pipe, Unknown, Error, Junction, Tank, Pump, Valve, Emitter};
+use crate::sections::{Source, Reservoir, Pipe, Unknown, Error, Junction, Tank, Pump, Valve, Emitter, Quality};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct INP {
@@ -12,7 +12,10 @@ pub struct INP {
     pumps: Vec<Pump>,
     valves: Vec<Valve>,
     emitters: Vec<Emitter>,
+    
+    quality: Vec<Quality>,
     sources: Vec<Source>,
+    
     unknown_sections: Vec<Unknown>,
     errors: Vec<Error>
 }
@@ -79,6 +82,7 @@ impl INP {
             pumps: Vec::new(),
             valves: Vec::new(),
             emitters: Vec::new(),
+            quality: Vec::new(),
             sources: Vec::new(), 
             unknown_sections: Vec::new(),
             errors: Vec::new(),
@@ -104,6 +108,7 @@ impl INP {
                         Some("VALVES") => add::<Valve>(data, &mut inp.valves, &mut inp.errors),
                         Some("EMITTERS") => add::<Emitter>(data, &mut inp.emitters, &mut inp.errors),
                         Some("SOURCES") => add::<Source>(data, &mut inp.sources, &mut inp.errors),
+                        Some("QUALITY") => add::<Quality>(data, &mut inp.quality, &mut inp.errors),
                         _ => inp.unknown_sections.push(Unknown { text: line.to_string() })
                     }
             }
@@ -143,7 +148,10 @@ mod test {
         assert_eq!(inp.pumps.len(), 5);
         assert_eq!(inp.valves.len(), 507);
         assert_eq!(inp.emitters.len(), 2020);
+
+        assert_eq!(inp.quality.len(), 1);
         assert_eq!(inp.sources.len(), 0);
+        
         assert!(inp.unknown_sections.len() > 0);
     }
 

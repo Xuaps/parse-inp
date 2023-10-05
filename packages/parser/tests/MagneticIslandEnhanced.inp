@@ -9283,6 +9283,7 @@ LINK M_Picnicbay_Mainland_Inlet CLOSED IF NODE Picnicbay_SR ABOVE 5.5
 
 [QUALITY]
 ;Node            	InitQual
+1        1
 
 [SOURCES]
 ;Node            	Type        	Quality     	Pattern
